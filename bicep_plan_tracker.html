@@ -21,6 +21,11 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 0 0 80px 0; }
 
+  /* LOADING OVERLAY */
+  #loading-overlay { position:fixed; inset:0; background:var(--bg); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; transition:opacity 0.3s; }
+  .spinner { width:40px; height:40px; border:4px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 1s linear infinite; margin-bottom:16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
   /* HEADER */
   header { background: var(--surface); border-bottom: 2px solid var(--accent); padding: 26px 24px 18px; text-align: center; position: relative; overflow: hidden; }
   header::before { content:''; position:absolute; top:-60px; left:50%; transform:translateX(-50%); width:300px; height:300px; background:radial-gradient(circle,rgba(232,244,77,.07) 0%,transparent 70%); pointer-events:none; }
@@ -53,22 +58,6 @@
   .panel { display:none; }
   .panel.active { display:block; }
 
-  /* MINI WEEK GRID */
-  .week-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-bottom:20px; }
-  .day-pip { background:var(--surface); border:1px solid var(--border); border-radius:7px; padding:8px 3px; text-align:center; position:relative; transition:all .2s; }
-  .day-pip.bicep  { border-top:3px solid var(--accent); }
-  .day-pip.pushup { border-top:3px solid var(--accent2); }
-  .day-pip.rest   { border-top:3px solid var(--rest-color); opacity:.6; }
-  .day-pip.day-done { opacity:1 !important; }
-  .day-pip.day-done.bicep  { background:rgba(232,244,77,.08); }
-  .day-pip.day-done.pushup { background:rgba(244,148,77,.08); }
-  .day-pip-name { font-size:.58rem; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:4px; }
-  .day-pip-type { font-family:'Bebas Neue',sans-serif; font-size:.75rem; letter-spacing:1px; }
-  .bicep  .day-pip-type { color:var(--accent); }
-  .pushup .day-pip-type { color:var(--accent2); }
-  .rest   .day-pip-type { color:var(--rest-color); }
-  .day-pip-check { font-size:.9rem; position:absolute; top:4px; right:5px; }
-
   /* SESSION BLOCKS */
   .session-block { background:var(--surface); border:1px solid var(--border); border-radius:10px; margin-bottom:10px; overflow:hidden; transition:border-color .2s; }
   .session-block.day-complete { border-color:rgba(232,244,77,.35); background:var(--done-bg); }
@@ -87,32 +76,13 @@
 
   /* EXERCISE ROWS WITH CHECKBOXES */
   .session-exercises { padding:8px 12px 12px; display:flex; flex-direction:column; gap:5px; }
-
-  .ex-check-row {
-    display:flex; align-items:center; gap:10px;
-    padding:9px 12px;
-    background:var(--card);
-    border-radius:7px;
-    border-left:3px solid var(--accent);
-    cursor:pointer;
-    transition:all .15s;
-    user-select:none;
-  }
+  .ex-check-row { display:flex; align-items:center; gap:10px; padding:9px 12px; background:var(--card); border-radius:7px; border-left:3px solid var(--accent); cursor:pointer; transition:all .15s; user-select:none; }
   .ex-check-row.orange { border-left-color:var(--accent2); }
   .ex-check-row:hover { background:#252525; }
   .ex-check-row.checked { background:rgba(232,244,77,.07); border-left-color:var(--accent); }
   .ex-check-row.checked.orange { background:rgba(244,148,77,.07); }
 
-  /* custom checkbox */
-  .ex-checkbox {
-    width:22px; height:22px; border-radius:5px;
-    border:2px solid var(--border);
-    background:transparent;
-    flex-shrink:0;
-    display:flex; align-items:center; justify-content:center;
-    font-size:.8rem; color:transparent;
-    transition:all .15s;
-  }
+  .ex-checkbox { width:22px; height:22px; border-radius:5px; border:2px solid var(--border); background:transparent; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:.8rem; color:transparent; transition:all .15s; }
   .ex-check-row:hover .ex-checkbox { border-color:var(--accent); }
   .ex-check-row.checked .ex-checkbox { background:var(--accent); border-color:var(--accent); color:#000; font-weight:700; }
   .ex-check-row.checked.orange .ex-checkbox { background:var(--accent2); border-color:var(--accent2); }
@@ -125,21 +95,7 @@
   .yt-link:hover { background:rgba(255,50,50,.26); }
 
   /* MARK DAY BUTTON */
-  .mark-day-btn {
-    width:100%; margin-top:8px;
-    padding:9px;
-    background:transparent;
-    border:1px dashed var(--border);
-    border-radius:7px;
-    color:var(--muted);
-    font-size:.75rem;
-    font-weight:600;
-    letter-spacing:1px;
-    text-transform:uppercase;
-    cursor:pointer;
-    transition:all .2s;
-    font-family:'DM Sans',sans-serif;
-  }
+  .mark-day-btn { width:100%; margin-top:8px; padding:9px; background:transparent; border:1px dashed var(--border); border-radius:7px; color:var(--muted); font-size:.75rem; font-weight:600; letter-spacing:1px; text-transform:uppercase; cursor:pointer; transition:all .2s; font-family:'DM Sans',sans-serif; }
   .mark-day-btn:hover { border-color:var(--accent); color:var(--accent); background:rgba(232,244,77,.05); }
   .mark-day-btn.marked { border-style:solid; border-color:rgba(232,244,77,.3); color:var(--accent); background:rgba(232,244,77,.07); }
   .mark-day-btn.marked.orange-btn { border-color:rgba(244,148,77,.3); color:var(--accent2); background:rgba(244,148,77,.07); }
@@ -195,74 +151,24 @@
   .small-label { font-size:.63rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-bottom:9px; }
 
   /* WEIGHT BANNER */
-  .weight-banner {
-    display:flex; align-items:center; gap:14px;
-    background: linear-gradient(135deg, rgba(232,244,77,.08) 0%, rgba(232,244,77,.03) 100%);
-    border:1px solid rgba(232,244,77,.25);
-    border-radius:10px;
-    padding:12px 16px;
-    margin-bottom:16px;
-  }
+  .weight-banner { display:flex; align-items:center; gap:14px; background: linear-gradient(135deg, rgba(232,244,77,.08) 0%, rgba(232,244,77,.03) 100%); border:1px solid rgba(232,244,77,.25); border-radius:10px; padding:12px 16px; margin-bottom:16px; }
   .weight-icon { font-size:1.6rem; flex-shrink:0; }
   .weight-info { flex:1; }
   .weight-title { font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:2px; color:var(--accent); margin-bottom:2px; }
   .weight-detail { font-size:.78rem; color:var(--muted); line-height:1.5; }
-  .weight-tag {
-    font-family:'Bebas Neue',sans-serif;
-    font-size:2rem;
-    letter-spacing:1px;
-    color:var(--accent);
-    background:rgba(232,244,77,.1);
-    border:1px solid rgba(232,244,77,.3);
-    border-radius:8px;
-    padding:8px 14px;
-    white-space:nowrap;
-    flex-shrink:0;
-    text-align:center;
-    line-height:1.1;
-  }
-  .weight-next { font-size:.68rem; color:var(--muted); margin-top:3px; }
-  .weight-next span { color:var(--accent2); font-weight:600; }
+  .weight-tag { font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:1px; color:var(--accent); background:rgba(232,244,77,.1); border:1px solid rgba(232,244,77,.3); border-radius:8px; padding:8px 14px; white-space:nowrap; flex-shrink:0; text-align:center; line-height:1.1; }
+  .weight-pill { font-size:.65rem; font-weight:700; background:rgba(232,244,77,.12); color:var(--accent); border:1px solid rgba(232,244,77,.25); border-radius:12px; padding:2px 8px; white-space:nowrap; flex-shrink:0; }
 
-  /* WEIGHT PILL on exercise rows */
-  .weight-pill {
-    font-size:.65rem; font-weight:700;
-    background:rgba(232,244,77,.12);
-    color:var(--accent);
-    border:1px solid rgba(232,244,77,.25);
-    border-radius:12px;
-    padding:2px 8px;
-    white-space:nowrap;
-    flex-shrink:0;
-  }
-
-  /* WEIGHT ROADMAP (progress tab) */
+  /* WEIGHT ROADMAP */
   .roadmap { display:flex; flex-direction:column; gap:0; margin-bottom:4px; }
-  .roadmap-row {
-    display:flex; align-items:center; gap:0;
-    position:relative;
-  }
-  .roadmap-dot {
-    width:14px; height:14px; border-radius:50%;
-    background:var(--border); border:2px solid var(--border);
-    flex-shrink:0; z-index:1; margin-right:12px;
-    transition:all .2s;
-  }
+  .roadmap-row { display:flex; align-items:center; gap:0; position:relative; }
+  .roadmap-dot { width:14px; height:14px; border-radius:50%; background:var(--border); border:2px solid var(--border); flex-shrink:0; z-index:1; margin-right:12px; transition:all .2s; }
   .roadmap-dot.active { background:var(--accent); border-color:var(--accent); }
   .roadmap-dot.done   { background:var(--accent); border-color:var(--accent); }
-  .roadmap-line {
-    position:absolute; left:6px; top:14px;
-    width:2px; height:calc(100% + 1px);
-    background:var(--border);
-    z-index:0;
-  }
+  .roadmap-line { position:absolute; left:6px; top:14px; width:2px; height:calc(100% + 1px); background:var(--border); z-index:0; }
   .roadmap-line.done { background:rgba(232,244,77,.4); }
   .roadmap-row:last-child .roadmap-line { display:none; }
-  .roadmap-content {
-    flex:1; background:var(--surface); border:1px solid var(--border);
-    border-radius:8px; padding:10px 14px; margin-bottom:6px;
-    transition:border-color .2s;
-  }
+  .roadmap-content { flex:1; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 14px; margin-bottom:6px; transition:border-color .2s; }
   .roadmap-content.active { border-color:rgba(232,244,77,.4); background:rgba(232,244,77,.05); }
   .roadmap-content.done   { border-color:rgba(232,244,77,.2); }
   .roadmap-weeks { font-size:.65rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:3px; }
@@ -270,13 +176,7 @@
   .roadmap-desc { font-size:.73rem; color:var(--muted); margin-top:2px; line-height:1.5; }
 
   /* ── WORKOUT MODE ── */
-  .workout-day-btn {
-    display:flex; align-items:center; gap:10px;
-    width:100%; padding:12px 16px; margin-bottom:8px;
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:10px; cursor:pointer; transition:all .2s;
-    font-family:'DM Sans',sans-serif; color:var(--text); text-align:left;
-  }
+  .workout-day-btn { display:flex; align-items:center; gap:10px; width:100%; padding:12px 16px; margin-bottom:8px; background:var(--surface); border:1px solid var(--border); border-radius:10px; cursor:pointer; transition:all .2s; font-family:'DM Sans',sans-serif; color:var(--text); text-align:left; }
   .workout-day-btn:hover { border-color:var(--accent); background:#1f1f1f; }
   .workout-day-btn .wdb-dot { width:10px;height:10px;border-radius:50%;flex-shrink:0; }
   .workout-day-btn .wdb-name { font-family:'Bebas Neue',sans-serif; font-size:1.05rem; letter-spacing:2px; }
@@ -300,25 +200,6 @@
   .wk-done-badge { font-size:.63rem; font-weight:700; color:var(--accent); background:rgba(232,244,77,.12); border:1px solid rgba(232,244,77,.22); border-radius:10px; padding:2px 8px; display:none; }
   .wk-ex-done .wk-done-badge { display:inline-block; }
 
-  .wk-sets { padding:10px 14px 12px; display:flex; flex-direction:column; gap:6px; }
-  .wk-set-row { display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--card); border-radius:7px; border-left:3px solid var(--border); transition:all .2s; }
-  .wk-set-row.set-active  { border-left-color:var(--accent); background:#23231a; }
-  .wk-set-row.set-done    { border-left-color:rgba(232,244,77,.35); background:rgba(232,244,77,.04); opacity:.75; }
-  .wk-set-row.set-active.orange-set { border-left-color:var(--accent2); background:#231e14; }
-  .wk-set-row.set-done.orange-set   { border-left-color:rgba(244,148,77,.35); background:rgba(244,148,77,.04); }
-
-  .wk-set-label { font-size:.73rem; font-weight:600; color:var(--muted); width:44px; flex-shrink:0; }
-  .wk-set-row.set-active .wk-set-label { color:var(--accent); }
-  .wk-set-reps { font-size:.78rem; color:var(--muted); flex:1; }
-  .wk-set-row.set-active .wk-set-reps { color:var(--text); font-weight:500; }
-
-  .wk-set-btn { padding:6px 14px; border-radius:6px; font-size:.73rem; font-weight:700; cursor:pointer; transition:all .15s; border:none; font-family:'DM Sans',sans-serif; flex-shrink:0; }
-  .btn-do   { background:var(--accent); color:#000; }
-  .btn-do:hover { background:#d4df3a; }
-  .btn-do.orange-btn { background:var(--accent2); color:#000; }
-  .btn-do.orange-btn:hover { background:#e0833d; }
-  .btn-check { background:transparent; border:none; font-size:1.1rem; cursor:default; }
-
   .rest-timer-wrap { margin:4px 14px 10px; background:var(--card); border:1px solid var(--border); border-radius:9px; overflow:hidden; display:none; }
   .rest-timer-wrap.visible { display:block; }
   .rest-timer-inner { padding:11px 14px; }
@@ -339,12 +220,7 @@
   .wc-btn:hover { background:#d4df3a; }
 
   /* ── COUNTDOWN OVERLAY ── */
-  .countdown-overlay {
-    position:fixed; inset:0; z-index:999;
-    background:rgba(13,13,13,.97);
-    display:flex; flex-direction:column;
-    align-items:center; justify-content:center; gap:10px;
-  }
+  .countdown-overlay { position:fixed; inset:0; z-index:999; background:rgba(13,13,13,.97); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; }
   .countdown-overlay.hidden { display:none; }
   .countdown-ex-name { font-size:.8rem; color:var(--muted); text-transform:uppercase; letter-spacing:2px; text-align:center; padding:0 20px; }
   .countdown-num { font-family:'Bebas Neue',sans-serif; font-size:9rem; line-height:1; color:var(--accent); animation:popIn .3s ease; }
@@ -354,68 +230,31 @@
   .countdown-sub { font-size:.75rem; color:var(--muted); }
 
   /* ── ACTIVE SET SCREEN ── */
-  .set-screen {
-    position:fixed; inset:0; z-index:998;
-    background:var(--bg);
-    display:flex; flex-direction:column;
-    overflow-y:auto;
-  }
+  .set-screen { position:fixed; inset:0; z-index:998; background:var(--bg); display:flex; flex-direction:column; overflow-y:auto; }
   .set-screen.hidden { display:none; }
-
-  .set-screen-header {
-    display:flex; align-items:center; gap:10px;
-    padding:14px 16px; background:var(--surface);
-    border-bottom:1px solid var(--border); flex-shrink:0;
-  }
+  .set-screen-header { display:flex; align-items:center; gap:10px; padding:14px 16px; background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0; }
   .set-screen-back { background:transparent; border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--muted); font-size:.72rem; cursor:pointer; font-family:'DM Sans',sans-serif; }
   .set-screen-back:hover { color:var(--text); border-color:var(--accent); }
   .set-screen-title { font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:2px; color:var(--accent); flex:1; }
   .set-screen-title.orange { color:var(--accent2); }
   .set-screen-chip { font-size:.65rem; font-weight:700; background:rgba(232,244,77,.1); color:var(--accent); border:1px solid rgba(232,244,77,.2); border-radius:10px; padding:2px 8px; }
-
   .set-screen-body { flex:1; display:flex; flex-direction:column; align-items:center; padding:20px 16px; gap:16px; }
-
-  /* exercise + set info */
   .set-ex-name { font-weight:700; font-size:1.1rem; text-align:center; }
   .set-info-row { display:flex; gap:10px; }
   .set-info-chip { font-size:.72rem; color:var(--muted); background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:4px 12px; }
-
-  /* movement cue */
-  .cue-box {
-    width:100%; background:var(--surface); border:1px solid var(--border);
-    border-radius:12px; padding:16px; text-align:center;
-  }
+  .cue-box { width:100%; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; text-align:center; }
   .cue-label { font-size:.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:2px; margin-bottom:8px; }
   .cue-arrow { font-size:3.5rem; line-height:1; margin-bottom:4px; transition:all .25s; }
   .cue-phase { font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:4px; transition:color .25s; }
   .cue-phase.up   { color:var(--accent); }
   .cue-phase.down { color:var(--accent2); }
   .cue-phase.hold { color:var(--rest-color); }
-
-  /* rep counter */
   .rep-counter-wrap { width:100%; text-align:center; }
   .rep-counter-label { font-size:.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:2px; margin-bottom:8px; }
   .rep-counter-num { font-family:'Bebas Neue',sans-serif; font-size:6rem; line-height:1; color:var(--text); transition:all .1s; }
   .rep-counter-num.bump { transform:scale(1.15); color:var(--accent); }
   .rep-counter-num.orange-bump { transform:scale(1.15); color:var(--accent2); }
   .rep-counter-target { font-size:.75rem; color:var(--muted); margin-top:2px; }
-
-  /* tap button */
-  .rep-tap-btn {
-    width:100%; max-width:320px; padding:22px;
-    border:none; border-radius:16px; cursor:pointer;
-    font-family:'Bebas Neue',sans-serif; font-size:1.6rem; letter-spacing:3px;
-    background:var(--accent); color:#000; transition:all .1s;
-    box-shadow:0 4px 20px rgba(232,244,77,.25);
-    -webkit-tap-highlight-color:transparent;
-  }
-  .rep-tap-btn:active { transform:scale(.96); }
-  .rep-tap-btn.orange-tap { background:var(--accent2); box-shadow:0 4px 20px rgba(244,148,77,.25); }
-
-  /* undo + set dots */
-  .rep-actions { display:flex; gap:10px; align-items:center; width:100%; max-width:320px; }
-  .rep-undo-btn { flex:1; padding:10px; background:transparent; border:1px solid var(--border); border-radius:10px; color:var(--muted); font-size:.75rem; cursor:pointer; font-family:'DM Sans',sans-serif; }
-  .rep-undo-btn:hover { border-color:var(--accent2); color:var(--accent2); }
   .set-dots { display:flex; gap:6px; justify-content:center; align-items:center; }
   .set-dot { width:10px; height:10px; border-radius:50%; background:var(--border); transition:all .2s; }
   .set-dot.dot-done { background:var(--accent); }
@@ -424,12 +263,7 @@
   .set-dot.dot-active.orange-dot { background:var(--accent2); box-shadow:0 0 0 3px rgba(244,148,77,.25); }
 
   /* rest full-screen */
-  .rest-screen {
-    position:fixed; inset:0; z-index:999;
-    background:rgba(13,13,13,.97);
-    display:flex; flex-direction:column;
-    align-items:center; justify-content:center; gap:10px;
-  }
+  .rest-screen { position:fixed; inset:0; z-index:999; background:rgba(13,13,13,.97); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; }
   .rest-screen.hidden { display:none; }
   .rest-screen-label { font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:2px; }
   .rest-screen-count { font-family:'Bebas Neue',sans-serif; font-size:7rem; line-height:1; color:var(--accent); }
@@ -440,25 +274,8 @@
   .rest-skip-btn:hover { border-color:var(--accent2); color:var(--accent2); }
 
   /* ── DAY SELECTOR ── */
-  .day-selector {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 5px;
-    margin-bottom: 16px;
-  }
-  .day-sel-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 8px 2px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all .15s;
-    position: relative;
-    font-family: 'DM Sans', sans-serif;
-  }
+  .day-selector { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 16px; }
+  .day-sel-btn { display: flex; flex-direction: column; align-items: center; padding: 8px 2px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: all .15s; position: relative; font-family: 'DM Sans', sans-serif; }
   .day-sel-btn:hover { background: #1f1f1f; }
   .day-sel-btn.active-day { background: var(--card); border-color: var(--accent); }
   .day-sel-btn.active-day.orange-day { border-color: var(--accent2); }
@@ -469,31 +286,19 @@
   .day-sel-tick { position: absolute; top: 3px; right: 4px; font-size: .65rem; }
 
   /* ── PACE BUTTONS ── */
-  .pace-btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: .65rem;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: all .15s;
-  }
+  .pace-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 4px 10px; border-radius: 6px; font-size: .65rem; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .15s; }
   .pace-btn:hover { border-color: var(--muted); }
-  .pace-btn.active {
-    background: rgba(232,244,77,.15);
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-  .orange-setup .pace-btn.active {
-    background: rgba(244,148,77,.15);
-    border-color: var(--accent2);
-    color: var(--accent2);
-  }
+  .pace-btn.active { background: rgba(232,244,77,.15); border-color: var(--accent); color: var(--accent); }
+  .orange-setup .pace-btn.active { background: rgba(244,148,77,.15); border-color: var(--accent2); color: var(--accent2); }
 </style>
 </head>
 <body>
+
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div style="font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:2px; color:var(--accent);">Syncing Data...</div>
+</div>
 
 <header>
   <h1>My Fitness Plan</h1>
@@ -529,14 +334,8 @@
 
 <!-- ======= SCHEDULE & TRACK ======= -->
 <div class="panel active" id="panel-schedule">
-
-  <!-- Weight banner -->
   <div class="weight-banner" id="weight-banner"></div>
-
-  <!-- 7-day selector -->
   <div class="day-selector" id="day-selector"></div>
-
-  <!-- Single day content -->
   <div id="day-content"></div>
 
   <div class="section-title" style="margin-top:22px">Progression Rules</div>
@@ -561,7 +360,6 @@
 <!-- ======= EXERCISES ======= -->
 <div class="panel" id="panel-exercises">
   <div class="section-title">Bicep Exercises</div>
-
   <div class="exercise-card">
     <div class="ex-header" onclick="toggleEx(this)">
       <div class="ex-number">01</div>
@@ -582,7 +380,6 @@
       <br><strong>Tempo: 2-1-2-1</strong> — 2 seconds up, hold 1 second at the top, 2 seconds down, brief pause at the bottom before the next rep.
     </div>
   </div>
-
   <div class="exercise-card">
     <div class="ex-header" onclick="toggleEx(this)">
       <div class="ex-number">02</div>
@@ -602,7 +399,6 @@
       <br><strong>Why it matters:</strong> Builds outer bicep and forearm thickness — gives your arm a fuller look.
     </div>
   </div>
-
   <div class="exercise-card">
     <div class="ex-header" onclick="toggleEx(this)">
       <div class="ex-number">03</div>
@@ -622,7 +418,6 @@
       <br><strong>Why it matters:</strong> Locks your elbow so you can't cheat — pure bicep isolation that builds the peak.
     </div>
   </div>
-
   <div class="exercise-card">
     <div class="ex-header" onclick="toggleEx(this)">
       <div class="ex-number">04</div>
@@ -643,7 +438,6 @@
       <br><strong>Tempo: 2-1-4-1</strong> — This is the key difference from a standard curl. The 4-second lowering phase maximises time under tension and creates significantly more muscle growth stimulus.
     </div>
   </div>
-
   <div class="exercise-card">
     <div class="ex-header" onclick="toggleEx(this)">
       <div class="ex-number">05</div>
@@ -663,7 +457,6 @@
       <br><strong>Why it matters:</strong> Deeply stretches the long head of the bicep — builds the visible peak when you flex.
     </div>
   </div>
-
   <div class="exercise-card">
     <div class="ex-header" onclick="toggleEx(this)">
       <div class="ex-number">06</div>
@@ -684,7 +477,6 @@
   </div>
 
   <div class="section-title orange">Push-Up Exercises</div>
-
   <div class="exercise-card">
     <div class="ex-header" onclick="toggleEx(this)">
       <div class="ex-number orange">01</div>
@@ -704,7 +496,6 @@
       <br><strong>If too hard:</strong> Drop to knee push-ups until you can do 10 clean full reps.
     </div>
   </div>
-
   <div class="exercise-card">
     <div class="ex-header" onclick="toggleEx(this)">
       <div class="ex-number orange">02</div>
@@ -722,7 +513,6 @@
       </ul>
     </div>
   </div>
-
   <div class="exercise-card">
     <div class="ex-header" onclick="toggleEx(this)">
       <div class="ex-number orange">03</div>
@@ -741,7 +531,6 @@
       <br><strong>Goal:</strong> Use until you can do 10 clean standard push-ups in a row, then remove them.
     </div>
   </div>
-
   <div class="exercise-card">
     <div class="ex-header" onclick="toggleEx(this)">
       <div class="ex-number orange">04</div>
@@ -760,7 +549,6 @@
       <br><strong>Why it matters:</strong> Triceps make up 2/3 of your upper arm. Critical for overall arm size.
     </div>
   </div>
-
   <div class="exercise-card">
     <div class="ex-header" onclick="toggleEx(this)">
       <div class="ex-number orange">05</div>
@@ -807,22 +595,46 @@
     <div class="form-rule"><div class="form-icon">🔒</div><div><div class="form-rule-title">Pin Your Elbows</div><div class="form-rule-desc">Keep elbows locked at your sides during all curls. Drifting elbows reduce bicep activation and strain the shoulder.</div></div></div>
     <div class="form-rule"><div class="form-icon">📏</div><div><div class="form-rule-title">Full Range of Motion</div><div class="form-rule-desc">Lower the weight all the way down every rep. Partial reps build partial muscles. Full extension equals full growth.</div></div></div>
     <div class="form-rule"><div class="form-icon">🐢</div><div><div class="form-rule-title">Control the Descent</div><div class="form-rule-desc">Take 2–3 seconds on the way down. Never drop the weight — the lowering phase is where most growth happens.</div></div></div>
-    <div class="form-rule"><div class="form-icon">🚫</div><div><div class="form-rule-title">No Swinging</div><div class="form-rule-desc">If you're swinging your back or hips to lift, the weight is too heavy. Drop 2–5 lbs and do it properly.</div></div></div>
-    <div class="form-rule"><div class="form-icon">💨</div><div><div class="form-rule-title">Breathe Correctly</div><div class="form-rule-desc">Exhale on the curl up, inhale on the way down. Never hold your breath during a set.</div></div></div>
-    <div class="form-rule"><div class="form-icon">⏸️</div><div><div class="form-rule-title">Squeeze at the Top</div><div class="form-rule-desc">Hold 1 full second at the top and flex hard. Builds the mind-muscle connection and increases the growth signal.</div></div></div>
-  </div>
-  <div class="section-title">Nutrition Basics</div>
-  <div class="tip-grid">
-    <div class="tip-card"><div class="tip-icon">🥩</div><div class="tip-title">Protein Goal</div><div class="tip-text">Aim for <strong>100–110g protein/day</strong>. Sources: chicken, eggs, Greek yogurt, tuna, cottage cheese, protein shakes.</div></div>
-    <div class="tip-card"><div class="tip-icon">🍽️</div><div class="tip-title">Eat Enough</div><div class="tip-text">At 135 lbs eat at <strong>maintenance or a small surplus</strong> to build muscle. Undereating kills all gains.</div></div>
-    <div class="tip-card"><div class="tip-icon">💧</div><div class="tip-title">Stay Hydrated</div><div class="tip-text">Drink <strong>2–3 liters of water daily</strong>. Dehydration reduces strength, performance, and recovery speed.</div></div>
-    <div class="tip-card"><div class="tip-icon">😴</div><div class="tip-title">Sleep = Gains</div><div class="tip-text">Muscles grow during sleep. Aim for <strong>7–9 hours per night</strong>. Poor sleep stalls progress fast.</div></div>
+    <div class="form-rule"><div class="form-rule-title">No Swinging</div><div class="form-rule-desc">If you're swinging your back or hips to lift, the weight is too heavy. Drop 2–5 lbs and do it properly.</div></div></div>
   </div>
 </div>
 
 </div><!-- end .content -->
 
 <script>
+// ─── GOOGLE APPS SCRIPT INTEGRATION ──────────────────────
+let appState = {};
+
+// Load data directly from the attached Google Sheet
+function loadDataFromGoogle() {
+  google.script.run
+    .withSuccessHandler(function(data) {
+      appState = data || {};
+      document.getElementById('loading-overlay').style.opacity = '0';
+      setTimeout(() => document.getElementById('loading-overlay').style.display = 'none', 300);
+      renderSchedule();
+    })
+    .withFailureHandler(function(error) {
+      console.error("Error loading data:", error);
+      alert("Could not connect to database. Using local data for now.");
+      appState = JSON.parse(localStorage.getItem('fitV4_backup') || '{}');
+      document.getElementById('loading-overlay').style.display = 'none';
+      renderSchedule();
+    })
+    .getAppState();
+}
+
+// Save data directly to the attached Google Sheet
+function saveStateToGoogle(logEntry = null) {
+  // Save a local backup just in case
+  localStorage.setItem('fitV4_backup', JSON.stringify(appState));
+  
+  // Send to Google Apps Script
+  google.script.run
+    .withFailureHandler(function(err) { console.error("Failed to save to Google Sheets:", err); })
+    .saveAppState({ state: appState, log: logEntry });
+}
+
 // ─── DATA ────────────────────────────────────────────────
 const DAYS = [
   { name:'Monday',    short:'Mon', type:'bicep',  label:'Session A — Foundation', exercises:[
@@ -857,56 +669,85 @@ const DAYS = [
 const WEEKS = 52;
 let currentWeek = 1;
 
-// ─── WEIGHT PROGRESSION ──────────────────────────────────
 const WEIGHT_PLAN = [
-  { weeks:[1,10],  weight:'10 lbs', label:'Weeks 1–10',  desc:'Ten weeks of pure form training. Lock in every movement — pinned elbows, full range of motion, 2–3 second descent. Your tendons and joints need this time as much as your muscles do.', next:'Move to 15 lbs only when 10 lbs feels completely effortless for two full weeks of sessions in a row.' },
-  { weeks:[11,22], weight:'15 lbs', label:'Weeks 11–22', desc:'First real jump. Twelve weeks here — your body needs this long to fully adapt to the new load. Focus on the squeeze at the top and that slow controlled descent every single rep.', next:'Move to 20 lbs when 15 lbs feels like a warm-up weight and your form is rock solid.' },
-  { weeks:[23,34], weight:'20 lbs', label:'Weeks 23–34', desc:'Intermediate territory. Twelve weeks at 20 lbs builds serious foundational strength. No swinging, no shortcuts. If form ever breaks down, drop back to 15 lbs and rebuild before continuing.', next:'Move to 22 lbs when 20 lbs is fully controlled with zero form breakdown across two consecutive weeks.' },
-  { weeks:[35,44], weight:'22 lbs', label:'Weeks 35–44', desc:'A stepping stone between 20 and 25 — this jump exists to protect your joints. Ten weeks here to bridge the gap safely. Arms should be visibly developed and noticeably stronger by now.', next:'Move to 25 lbs when 22 lbs feels completely manageable across all sessions in a week.' },
-  { weeks:[45,52], weight:'25 lbs', label:'Weeks 45–52', desc:'The finish line. One full year of consistent work and you are curling 25 lbs per arm with clean form. That is a transformation most people never achieve. Push your reps hard and finish strong.', next:'After Week 52 you are well beyond beginner level — consider a full structured arm and upper body program.' },
+  { weeks:[1,10],  weight:'10 lbs', label:'Weeks 1–10',  desc:'Ten weeks of pure form training. Lock in every movement.' },
+  { weeks:[11,22], weight:'15 lbs', label:'Weeks 11–22', desc:'First real jump. Twelve weeks here to fully adapt.' },
+  { weeks:[23,34], weight:'20 lbs', label:'Weeks 23–34', desc:'Intermediate territory. No swinging, no shortcuts.' },
+  { weeks:[35,44], weight:'22 lbs', label:'Weeks 35–44', desc:'A stepping stone between 20 and 25 to protect joints.' },
+  { weeks:[45,52], weight:'25 lbs', label:'Weeks 45–52', desc:'The finish line. One full year of consistent work.' },
 ];
 
 function getWeightForWeek(week){
   return WEIGHT_PLAN.find(p => week >= p.weeks[0] && week <= p.weeks[1]) || WEIGHT_PLAN[0];
 }
 
-// ─── STATE ───────────────────────────────────────────────
-function getState(){ try{ return JSON.parse(localStorage.getItem('fitV4')||'{}'); }catch{ return {}; } }
-function saveState(s){ try{ localStorage.setItem('fitV4',JSON.stringify(s)); }catch{} }
-
-// ex checked
+// ─── STATE MANAGEMENT (USING GLOBAL appState) ─────────────
 function isExChecked(week, day, ex){
-  const s=getState(); return !!(s[week]&&s[week][day]&&s[week][day].ex&&s[week][day].ex[ex]);
+  return !!(appState[week] && appState[week][day] && appState[week][day].ex && appState[week][day].ex[ex]);
 }
+
 function toggleEx2(week, day, ex){
-  const s=getState();
-  if(!s[week])s[week]={};
-  if(!s[week][day])s[week][day]={};
-  if(!s[week][day].ex)s[week][day].ex={};
-  s[week][day].ex[ex]=!s[week][day].ex[ex];
-  saveState(s);
+  if(!appState[week]) appState[week]={};
+  if(!appState[week][day]) appState[week][day]={};
+  if(!appState[week][day].ex) appState[week][day].ex={};
+  
+  const isNowChecked = !appState[week][day].ex[ex];
+  appState[week][day].ex[ex] = isNowChecked;
+  
+  // Log it to Google Sheets
+  const logEntry = {
+    week: week,
+    day: DAYS[day].name,
+    action: isNowChecked ? "Checked Exercise" : "Unchecked Exercise",
+    details: DAYS[day].exercises[ex].name
+  };
+  saveStateToGoogle(logEntry);
 }
-// day marked complete
+
+function setExDone(week, day, ex, status){
+  if(!appState[week]) appState[week]={};
+  if(!appState[week][day]) appState[week][day]={};
+  if(!appState[week][day].ex) appState[week][day].ex={};
+  appState[week][day].ex[ex] = status;
+  
+  saveStateToGoogle({
+    week: week, day: DAYS[day].name, action: "Completed via Workout Mode", details: DAYS[day].exercises[ex].name
+  });
+}
+
 function isDayDone(week, day){
-  const s=getState(); return !!(s[week]&&s[week][day]&&s[week][day].dayDone);
+  return !!(appState[week] && appState[week][day] && appState[week][day].dayDone);
 }
+
 function toggleDayDone(week, day){
-  const s=getState();
-  if(!s[week])s[week]={};
-  if(!s[week][day])s[week][day]={};
-  s[week][day].dayDone=!s[week][day].dayDone;
-  saveState(s);
+  if(!appState[week]) appState[week]={};
+  if(!appState[week][day]) appState[week][day]={};
+  
+  const isNowDone = !appState[week][day].dayDone;
+  appState[week][day].dayDone = isNowDone;
+  
+  saveStateToGoogle({
+    week: week, day: DAYS[day].name, action: isNowDone ? "Marked Day Complete" : "Unmarked Day", details: ""
+  });
+}
+
+function setDayDone(week, day, status){
+  if(!appState[week]) appState[week]={};
+  if(!appState[week][day]) appState[week][day]={};
+  appState[week][day].dayDone = status;
+  
+  saveStateToGoogle({
+    week: week, day: DAYS[day].name, action: "Finished Full Workout", details: ""
+  });
 }
 
 // ─── COMPLETION CALC ─────────────────────────────────────
 function weekPct(week){
-  // count training days (non-rest) — day done counts as 1, else sum exercises
   let total=0, done=0;
   DAYS.forEach((day,di)=>{
     if(day.type==='rest') return;
-    total++; // 1 point per training day
+    total++;
     if(isDayDone(week,di)){ done++; return; }
-    // partial credit via exercises
     const exDone = day.exercises.filter((_,ei)=>isExChecked(week,di,ei)).length;
     done += exDone/day.exercises.length;
   });
@@ -918,9 +759,7 @@ function overallPct(){
   return Math.round(sum/WEEKS);
 }
 
-// ─── TAB SWITCHING (defined later in Workout Mode section)
-
-// ─── EXERCISE DETAIL ACCORDION ───────────────────────────
+// ─── TAB SWITCHING ───────────────────────────────────────
 function toggleEx(header){
   const body=header.nextElementSibling;
   const tog=header.querySelector('.ex-toggle');
@@ -936,14 +775,12 @@ function changeWeek(delta){
 
 // ─── RENDER SCHEDULE ─────────────────────────────────────
 function renderSchedule(){
-  // week label
   const pct=weekPct(currentWeek);
   document.getElementById('week-label').textContent='WEEK '+currentWeek;
   document.getElementById('week-pct-label').textContent=pct>0?pct+'% complete':'';
   document.getElementById('prev-btn').disabled=currentWeek===1;
   document.getElementById('next-btn').disabled=currentWeek===WEEKS;
 
-  // weight banner
   const wp = getWeightForWeek(currentWeek);
   const bannerEl = document.getElementById('weight-banner');
   bannerEl.innerHTML = `
@@ -955,13 +792,11 @@ function renderSchedule(){
     <div class="weight-tag">${wp.weight.replace(' lbs','')}<span style="font-size:.9rem;opacity:.7;margin-left:2px">lbs</span><br><span style="font-size:.5rem;letter-spacing:1.5px;opacity:.6;text-transform:uppercase">per arm</span></div>
   `;
 
-  // figure out today
   const todayJs = new Date().getDay();
   const todayMap = [6,0,1,2,3,4,5];
   const todayDi  = todayMap[todayJs];
   if(typeof selectedDay === 'undefined') window.selectedDay = todayDi;
 
-  // ── 7-DAY SELECTOR ──
   const selEl = document.getElementById('day-selector');
   selEl.innerHTML = '';
   DAYS.forEach((day, di) => {
@@ -989,7 +824,6 @@ function renderSchedule(){
     selEl.appendChild(btn);
   });
 
-  // ── SINGLE DAY VIEW ──
   const contentEl = document.getElementById('day-content');
   contentEl.innerHTML = '';
   const day    = DAYS[window.selectedDay];
@@ -1002,7 +836,6 @@ function renderSchedule(){
   const block = document.createElement('div');
   block.className = `session-block${dayDone&&day.type!=='rest'?(isOrange?' day-complete pushup-day':' day-complete'):''}`;
 
-  // day header
   const hdr = document.createElement('div');
   hdr.className = 'session-header';
   hdr.innerHTML = `
@@ -1084,7 +917,6 @@ function renderProgress(){
     wrap.appendChild(div);
   }
 
-  // weight roadmap
   const roadmap=document.getElementById('weight-roadmap');
   roadmap.innerHTML='';
   WEIGHT_PLAN.forEach((stage,i)=>{
@@ -1105,13 +937,8 @@ function renderProgress(){
   });
 }
 
-// ─── INIT ─────────────────────────────────────────────────
-renderSchedule();
-
 // ─── WORKOUT MODE ─────────────────────────────────────────
 let timerInterval = null;
-let timerRemaining = 0;
-let timerTotal = 0;
 
 function showPanel(id, el) {
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -1145,7 +972,6 @@ function renderWorkoutDaySelect() {
   });
 }
 
-// ── REP SETUP SCREEN ────────────────────────────────────────
 function showRepSetup(dayIndex) {
   const day      = DAYS[dayIndex];
   const wp       = getWeightForWeek(currentWeek);
@@ -1155,13 +981,7 @@ function showRepSetup(dayIndex) {
   const con = document.getElementById('workout-content');
   sel.innerHTML = '';
 
-  // build rep config — default to lower bound of rep range per exercise
-  const repConfig = day.exercises.map(ex => {
-    const s = String(ex.reps);
-    return parseInt(s.split('–')[0]) || parseInt(s) || 10;
-  });
-
-  // build pace config — default to 2s
+  const repConfig = day.exercises.map(ex => parseInt(String(ex.reps).split('–')[0]) || parseInt(ex.reps) || 10);
   const paceConfig = day.exercises.map(() => 2);
 
   function render() {
@@ -1173,7 +993,7 @@ function showRepSetup(dayIndex) {
       </div>
       <div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px">Set your reps & pace for today</div>
       <div id="rep-setup-list" class="${isOrange ? 'orange-setup' : ''}"></div>
-      <button id="start-workout-btn" style="width:100%;padding:16px;border:none;border-radius:12px;background:${accent};color:#000;font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:3px;cursor:pointer;margin-top:8px;transition:opacity .15s;">
+      <button id="start-workout-btn" style="width:100%;padding:16px;border:none;border-radius:12px;background:${accent};color:#000;font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:3px;cursor:pointer;margin-top:8px;">
         START WORKOUT ▶
       </button>
     `;
@@ -1200,7 +1020,6 @@ function showRepSetup(dayIndex) {
       list.appendChild(card);
     });
 
-    // +/- buttons
     list.querySelectorAll('.rep-adj-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const ei = parseInt(btn.dataset.ei);
@@ -1210,7 +1029,6 @@ function showRepSetup(dayIndex) {
       });
     });
 
-    // pace buttons
     list.querySelectorAll('.pace-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const ei = parseInt(btn.dataset.ei);
@@ -1253,17 +1071,18 @@ function startWorkout(dayIndex, repConfig, paceConfig) {
     </div>
   `;
 
-  const setsDone  = day.exercises.map(ex => Array(ex.sets).fill(false));
+  const setsDone = day.exercises.map((ex, ei) => {
+    const isAlreadyDone = isExChecked(currentWeek, dayIndex, ei);
+    return Array(ex.sets).fill(isAlreadyDone);
+  });
+  
   let activeEx    = 0;
   let activeSet   = 0;
-  let cueInterval = null;
   let repInterval = null;
 
-  // ── Cue helpers ─────────────────────────────────────────
   function cueArrow(p) { return p==='UP'?'⬆':p==='DOWN'?'⬇':'⏸'; }
   function cueClass(p) { return p==='UP'?'up':p==='DOWN'?'down':'hold'; }
 
-  // ── Summary view ─────────────────────────────────────────
   function renderSummary() {
     const wrap = document.getElementById('wk-ex-summary');
     if(!wrap) return;
@@ -1285,23 +1104,25 @@ function startWorkout(dayIndex, repConfig, paceConfig) {
             const isCur=ei===activeEx&&si===activeSet&&!allDone;
             return `<div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;border:2px solid ${done||isCur?accent:'var(--border)'};background:${done?accent:'transparent'};color:${done?'#000':isCur?accent:'var(--muted)'};">${done?'✓':si+1}</div>`;
           }).join('')}
-          ${!allDone&&ei===activeEx?`<button onclick="openSetScreen(${ei},${activeSet})" style="margin-left:auto;padding:6px 14px;border:none;border-radius:8px;background:${accent};color:#000;font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:1px;cursor:pointer;">▶ Start Set ${activeSet+1}</button>`:''}
+          ${!allDone&&ei===activeEx?`<button onclick="startNextExercise(${ei},${activeSet})" style="margin-left:auto;padding:6px 14px;border:none;border-radius:8px;background:${accent};color:#000;font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:1px;cursor:pointer;">▶ Start Set ${activeSet+1}</button>`:''}
         </div>
       `;
       wrap.appendChild(div);
     });
   }
 
-  // ── Set screen with AUTO rep counter ─────────────────────
+  window.startNextExercise = function(ei, si) {
+    showCountdown(day.exercises[ei].name, isOrange, () => {
+      renderSummary();
+      openSetScreen(ei, si);
+    });
+  };
+
   window.openSetScreen = function(ei, si) {
     const ex     = day.exercises[ei];
     const target = repConfig[ei];
     const screen = document.getElementById('set-screen');
-    let   repCount = 0;
-    let   cueStep  = 0;
-    let   repPhase = 0; // tracks position within the pace cycle per rep
 
-    // populate static info
     document.getElementById('set-screen-title').textContent = day.label.toUpperCase();
     document.getElementById('set-screen-title').className = 'set-screen-title' + (isOrange?' orange':'');
     document.getElementById('set-screen-chip').textContent = day.type==='bicep'?`🏋️ ${wp.weight}`:'';
@@ -1311,15 +1132,9 @@ function startWorkout(dayIndex, repConfig, paceConfig) {
     document.getElementById('rep-target').textContent    = `0 / ${target}`;
 
     const counterEl = document.getElementById('rep-counter');
-    counterEl.textContent = target; // countdown from target
+    counterEl.textContent = target;
     counterEl.className   = 'rep-counter-num';
 
-    // hide tap button — not needed anymore
-    const tapBtn = document.getElementById('rep-tap-btn');
-    tapBtn.style.display = 'none';
-    document.getElementById('rep-undo-btn').style.display = 'none';
-
-    // dots
     const dotsEl = document.getElementById('set-dots');
     dotsEl.innerHTML = '';
     Array.from({length:ex.sets}).forEach((_,s) => {
@@ -1330,25 +1145,16 @@ function startWorkout(dayIndex, repConfig, paceConfig) {
       dotsEl.appendChild(dot);
     });
 
-    // back button
     document.getElementById('set-back-btn').onclick = () => {
-      stopRepCycle();
+      if(repInterval) { clearInterval(repInterval); repInterval = null; }
       screen.classList.add('hidden');
     };
 
     screen.classList.remove('hidden');
 
-    // ── AUTO REP CYCLE ──────────────────────────────────────
-    // Clone pace array so we don't mutate the global data
     let pace = JSON.parse(JSON.stringify(ex.pace || [{p:'UP',s:2},{p:'HOLD',s:1},{p:'DOWN',s:2},{p:'HOLD',s:1}]));
-    
-    // Apply user's pace selection (only speed up standard 2s movements, leave 4s eccentrics alone)
     if (paceConfig[ei] === 1) {
-      pace.forEach(step => {
-        if ((step.p === 'UP' || step.p === 'DOWN') && step.s === 2) {
-          step.s = 1;
-        }
-      });
+      pace.forEach(step => { if ((step.p === 'UP' || step.p === 'DOWN') && step.s === 2) step.s = 1; });
     }
 
     function buildTicks(paceArr) {
@@ -1356,19 +1162,10 @@ function startWorkout(dayIndex, repConfig, paceConfig) {
       paceArr.forEach((step, si) => {
         const isLastStep = si === paceArr.length - 1;
         for(let t = 0; t < step.s; t++) {
-          ticks.push({
-            phase: step.p,
-            secs: step.s,
-            tickInStep: t + 1,
-            isRepEnd: isLastStep && t === step.s - 1
-          });
+          ticks.push({ phase: step.p, secs: step.s, tickInStep: t + 1, isRepEnd: isLastStep && t === step.s - 1 });
         }
       });
       return ticks;
-    }
-
-    function stopRepCycle() {
-      if(repInterval) { clearInterval(repInterval); repInterval = null; }
     }
 
     function updateCueTick(tick) {
@@ -1376,10 +1173,7 @@ function startWorkout(dayIndex, repConfig, paceConfig) {
       const phaseEl = document.getElementById('cue-phase');
       if(arrowEl) arrowEl.textContent = cueArrow(tick.phase);
       if(phaseEl) {
-        // Show countdown within multi-second steps e.g. "DOWN 3"
-        const label = tick.secs > 1
-          ? `${tick.phase} ${tick.secs - tick.tickInStep + 1}`
-          : tick.phase;
+        const label = tick.secs > 1 ? `${tick.phase} ${tick.secs - tick.tickInStep + 1}` : tick.phase;
         phaseEl.textContent = label;
         phaseEl.className = 'cue-phase ' + cueClass(tick.phase);
       }
@@ -1409,7 +1203,7 @@ function startWorkout(dayIndex, repConfig, paceConfig) {
         remaining--;
         updateCounter(remaining);
         if(remaining <= 0) {
-          stopRepCycle();
+          if(repInterval) { clearInterval(repInterval); repInterval = null; }
           const el = document.getElementById('rep-counter');
           if(el) { el.textContent = '✓'; el.style.color = accent; }
           setTimeout(() => {
@@ -1428,29 +1222,19 @@ function startWorkout(dayIndex, repConfig, paceConfig) {
     const hasNext= day.exercises[ei + 1] !== undefined;
 
     if (nextSi === -1) {
-      // Exercise is fully complete
+      setExDone(currentWeek, dayIndex, ei, true);
       if (!hasNext) {
+        setDayDone(currentWeek, dayIndex, true);
         renderSummary();
         finishWorkout();
         return;
       }
-      
-      // Move to next exercise, but DO NOT auto-start the countdown
       activeEx = ei + 1;
       activeSet = 0;
-      const nextEx = day.exercises[activeEx];
-      const nextLabel = `Next: ${nextEx.name}`;
-
       renderSummary();
-      // Show rest screen, but when it finishes, just stay on the summary screen
-      showRestScreen(ex.rest, nextLabel, () => {
-        renderSummary();
-        // Do nothing else! The user will click "Start Set 1" when ready.
-      });
       return;
     }
 
-    // Same exercise, next set. Auto-rest and continue.
     activeEx = ei;
     activeSet = nextSi;
     const nextLabel = `Next: Set ${activeSet+1} of ${ex.sets}`;
@@ -1468,14 +1252,8 @@ function startWorkout(dayIndex, repConfig, paceConfig) {
   function finishWorkout() {
     stopTimer();
     document.getElementById('workout-complete').classList.add('visible');
-    const s = getState();
-    if(!s[currentWeek]) s[currentWeek]={};
-    if(!s[currentWeek][dayIndex]) s[currentWeek][dayIndex]={};
-    s[currentWeek][dayIndex].dayDone = true;
-    saveState(s); updateOverall();
   }
 
-  // ── Rest screen ──────────────────────────────────────────
   function showRestScreen(seconds, nextLabel, onDone) {
     stopTimer();
     const screen  = document.getElementById('rest-screen');
@@ -1499,7 +1277,6 @@ function startWorkout(dayIndex, repConfig, paceConfig) {
     }, 1000);
   }
 
-  // ── Countdown overlay ───────────────────────────────────
   function showCountdown(exName, orange, cb) {
     const overlay = document.getElementById('countdown-overlay');
     const numEl   = document.getElementById('cd-num');
@@ -1530,21 +1307,26 @@ function startWorkout(dayIndex, repConfig, paceConfig) {
     document.getElementById('set-screen').classList.add('hidden');
     document.getElementById('rest-screen').classList.add('hidden');
     document.getElementById('countdown-overlay').classList.add('hidden');
+    renderSchedule();
+    updateOverall();
     renderWorkoutDaySelect();
   };
 
-  // kick off
+  activeEx = setsDone.findIndex(sets => !sets.every(v => v));
+  if (activeEx === -1) activeEx = 0;
   renderSummary();
-  showCountdown(day.exercises[0].name, isOrange, () => {
-    renderSummary();
-    openSetScreen(0, 0);
-  });
 }
 
 function stopTimer() {
   if(timerInterval) { clearInterval(timerInterval); timerInterval = null; }
 }
+
+// ─── INIT ─────────────────────────────────────────────────
+// Start by loading data from Google Sheets
+loadDataFromGoogle();
+
 </script>
+
 <!-- COUNTDOWN OVERLAY -->
 <div class="countdown-overlay hidden" id="countdown-overlay">
   <div class="countdown-ex-name" id="cd-ex-name"></div>
@@ -1566,28 +1348,17 @@ function stopTimer() {
       <div class="set-info-chip" id="set-info-set"></div>
     </div>
     <div class="set-dots" id="set-dots"></div>
-
-    <!-- movement cue -->
     <div class="cue-box">
       <div class="cue-label">Movement</div>
       <div class="cue-arrow" id="cue-arrow">⬆</div>
       <div class="cue-phase up" id="cue-phase">UP</div>
     </div>
-
-    <!-- rep counter -->
     <div class="rep-counter-wrap">
       <div class="rep-counter-label">Reps Remaining</div>
       <div class="rep-counter-num" id="rep-counter">0</div>
       <div class="rep-counter-target" id="rep-target"></div>
     </div>
-
     <div style="font-size:.7rem;color:var(--muted);text-align:center;letter-spacing:1px;text-transform:uppercase;">Auto-counting · follow the movement cue</div>
-
-    <!-- hidden tap/undo (kept for JS refs) -->
-    <button class="rep-tap-btn" id="rep-tap-btn" style="display:none">TAP</button>
-    <div class="rep-actions" style="display:none">
-      <button class="rep-undo-btn" id="rep-undo-btn">↩ Undo</button>
-    </div>
   </div>
 </div>
 
