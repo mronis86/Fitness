@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Fitness Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --card: #1e1e1e;
+    --border: #2a2a2a;
+    --accent: #e8f44d;
+    --accent2: #f4944d;
+    --text: #f0f0f0;
+    --muted: #888;
+    --rest-color: #4dccbd;
+    --done-bg: rgba(232,244,77,0.06);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 0 0 80px 0; }
+
+  /* HEADER */
+  header { background: var(--surface); border-bottom: 2px solid var(--accent); padding: 26px 24px 18px; text-align: center; position: relative; overflow: hidden; }
+  header::before { content:''; position:absolute; top:-60px; left:50%; transform:translateX(-50%); width:300px; height:300px; background:radial-gradient(circle,rgba(232,244,77,.07) 0%,transparent 70%); pointer-events:none; }
+  header h1 { font-family:'Bebas Neue',sans-serif; font-size:clamp(2.2rem,8vw,4rem); letter-spacing:4px; color:var(--accent); line-height:1; }
+  header p { color:var(--muted); font-size:.78rem; margin-top:5px; letter-spacing:2px; text-transform:uppercase; }
+
+  /* STATS */
+  .stats-bar { display:flex; justify-content:center; gap:24px; padding:12px 20px; background:var(--surface); border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  .stat { text-align:center; }
+  .stat-value { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; color:var(--accent); line-height:1; }
+  .stat-label { font-size:.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+
+  /* WEEK NAV */
+  .week-nav { display:flex; align-items:center; justify-content:center; gap:12px; padding:14px 16px; background:var(--surface); border-bottom:1px solid var(--border); }
+  .week-nav button { background:var(--card); border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:6px 14px; font-size:.8rem; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .2s; }
+  .week-nav button:hover { color:var(--text); border-color:var(--accent); }
+  .week-nav button:disabled { opacity:.3; cursor:default; }
+  .week-label { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; letter-spacing:3px; color:var(--accent); min-width:110px; text-align:center; }
+  .week-pct { font-size:.72rem; color:var(--muted); }
+
+  /* TABS */
+  .tabs { display:flex; overflow-x:auto; padding:14px 16px 0; gap:6px; scrollbar-width:none; }
+  .tabs::-webkit-scrollbar { display:none; }
+  .tab { padding:8px 16px; border-radius:6px 6px 0 0; border:1px solid var(--border); border-bottom:none; background:var(--surface); color:var(--muted); cursor:pointer; font-size:.73rem; font-weight:500; text-transform:uppercase; letter-spacing:1px; white-space:nowrap; transition:all .2s; flex-shrink:0; }
+  .tab:hover { color:var(--text); background:var(--card); }
+  .tab.active { background:var(--card); color:var(--accent); border-color:var(--accent); border-bottom:2px solid var(--card); }
+
+  /* CONTENT */
+  .content { background:var(--card); border:1px solid var(--border); border-top:2px solid var(--accent); margin:0 16px; border-radius:0 8px 8px 8px; padding:20px; }
+  .panel { display:none; }
+  .panel.active { display:block; }
+
+  /* MINI WEEK GRID */
+  .week-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-bottom:20px; }
+  .day-pip { background:var(--surface); border:1px solid var(--border); border-radius:7px; padding:8px 3px; text-align:center; position:relative; transition:all .2s; }
+  .day-pip.bicep  { border-top:3px solid var(--accent); }
+  .day-pip.pushup { border-top:3px solid var(--accent2); }
+  .day-pip.rest   { border-top:3px solid var(--rest-color); opacity:.6; }
+  .day-pip.day-done { opacity:1 !important; }
+  .day-pip.day-done.bicep  { background:rgba(232,244,77,.08); }
+  .day-pip.day-done.pushup { background:rgba(244,148,77,.08); }
+  .day-pip-name { font-size:.58rem; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:4px; }
+  .day-pip-type { font-family:'Bebas Neue',sans-serif; font-size:.75rem; letter-spacing:1px; }
+  .bicep  .day-pip-type { color:var(--accent); }
+  .pushup .day-pip-type { color:var(--accent2); }
+  .rest   .day-pip-type { color:var(--rest-color); }
+  .day-pip-check { font-size:.9rem; position:absolute; top:4px; right:5px; }
+
+  /* SESSION BLOCKS */
+  .session-block { background:var(--surface); border:1px solid var(--border); border-radius:10px; margin-bottom:10px; overflow:hidden; transition:border-color .2s; }
+  .session-block.day-complete { border-color:rgba(232,244,77,.35); background:var(--done-bg); }
+  .session-block.day-complete.pushup-day { border-color:rgba(244,148,77,.35); background:rgba(244,148,77,.04); }
+
+  .session-header { display:flex; align-items:center; gap:10px; padding:11px 14px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  .session-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+  .dot-bicep  { background:var(--accent); }
+  .dot-pushup { background:var(--accent2); }
+  .dot-rest   { background:var(--rest-color); }
+  .session-day { font-family:'Bebas Neue',sans-serif; font-size:1.05rem; letter-spacing:2px; }
+  .session-name { font-size:.7rem; color:var(--muted); }
+  .day-complete-badge { margin-left:auto; font-size:.65rem; font-weight:700; letter-spacing:1px; padding:3px 8px; border-radius:20px; background:rgba(232,244,77,.15); color:var(--accent); border:1px solid rgba(232,244,77,.3); display:none; }
+  .day-complete .day-complete-badge { display:inline-block; }
+  .pushup-day .day-complete-badge { background:rgba(244,148,77,.15); color:var(--accent2); border-color:rgba(244,148,77,.3); }
+
+  /* EXERCISE ROWS WITH CHECKBOXES */
+  .session-exercises { padding:8px 12px 12px; display:flex; flex-direction:column; gap:5px; }
+
+  .ex-check-row {
+    display:flex; align-items:center; gap:10px;
+    padding:9px 12px;
+    background:var(--card);
+    border-radius:7px;
+    border-left:3px solid var(--accent);
+    cursor:pointer;
+    transition:all .15s;
+    user-select:none;
+  }
+  .ex-check-row.orange { border-left-color:var(--accent2); }
+  .ex-check-row:hover { background:#252525; }
+  .ex-check-row.checked { background:rgba(232,244,77,.07); border-left-color:var(--accent); }
+  .ex-check-row.checked.orange { background:rgba(244,148,77,.07); }
+
+  /* custom checkbox */
+  .ex-checkbox {
+    width:22px; height:22px; border-radius:5px;
+    border:2px solid var(--border);
+    background:transparent;
+    flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:.8rem; color:transparent;
+    transition:all .15s;
+  }
+  .ex-check-row:hover .ex-checkbox { border-color:var(--accent); }
+  .ex-check-row.checked .ex-checkbox { background:var(--accent); border-color:var(--accent); color:#000; font-weight:700; }
+  .ex-check-row.checked.orange .ex-checkbox { background:var(--accent2); border-color:var(--accent2); }
+
+  .ex-check-info { flex:1; min-width:0; }
+  .ex-check-name { font-size:.82rem; font-weight:500; }
+  .ex-check-row.checked .ex-check-name { text-decoration:line-through; color:var(--muted); }
+  .ex-check-meta { font-size:.68rem; color:var(--muted); margin-top:1px; }
+  .yt-link { display:inline-flex; align-items:center; gap:3px; background:rgba(255,50,50,.12); color:#ff7070; border:1px solid rgba(255,80,80,.22); border-radius:4px; padding:3px 8px; font-size:.65rem; font-weight:600; text-decoration:none; white-space:nowrap; transition:background .15s; flex-shrink:0; }
+  .yt-link:hover { background:rgba(255,50,50,.26); }
+
+  /* MARK DAY BUTTON */
+  .mark-day-btn {
+    width:100%; margin-top:8px;
+    padding:9px;
+    background:transparent;
+    border:1px dashed var(--border);
+    border-radius:7px;
+    color:var(--muted);
+    font-size:.75rem;
+    font-weight:600;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:all .2s;
+    font-family:'DM Sans',sans-serif;
+  }
+  .mark-day-btn:hover { border-color:var(--accent); color:var(--accent); background:rgba(232,244,77,.05); }
+  .mark-day-btn.marked { border-style:solid; border-color:rgba(232,244,77,.3); color:var(--accent); background:rgba(232,244,77,.07); }
+  .mark-day-btn.marked.orange-btn { border-color:rgba(244,148,77,.3); color:var(--accent2); background:rgba(244,148,77,.07); }
+
+  /* REST DAY */
+  .rest-msg { text-align:center; padding:16px; color:var(--muted); font-size:.8rem; }
+  .rest-msg span { font-size:1.6rem; display:block; margin-bottom:5px; }
+
+  /* EXERCISE DETAIL CARDS */
+  .exercise-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-bottom:9px; transition:border-color .2s; }
+  .exercise-card:hover { border-color:var(--accent); }
+  .ex-header { display:flex; align-items:center; gap:10px; padding:11px 13px; cursor:pointer; user-select:none; flex-wrap:wrap; }
+  .ex-number { font-family:'Bebas Neue',sans-serif; font-size:1.25rem; color:var(--accent); width:24px; flex-shrink:0; }
+  .ex-number.orange { color:var(--accent2); }
+  .ex-info { flex:1; min-width:100px; }
+  .ex-name { font-weight:600; font-size:.86rem; margin-bottom:1px; }
+  .ex-meta { font-size:.68rem; color:var(--muted); }
+  .ex-badge { background:rgba(232,244,77,.1); color:var(--accent); border:1px solid rgba(232,244,77,.3); border-radius:4px; padding:2px 7px; font-size:.62rem; font-weight:600; text-transform:uppercase; letter-spacing:1px; }
+  .ex-badge.orange { background:rgba(244,148,77,.1); color:var(--accent2); border-color:rgba(244,148,77,.3); }
+  .ex-toggle { color:var(--muted); font-size:.7rem; transition:transform .2s; margin-left:3px; flex-shrink:0; }
+  .ex-toggle.open { transform:rotate(180deg); }
+  .ex-body { display:none; padding:12px 13px 14px 47px; font-size:.8rem; color:var(--muted); line-height:1.7; border-top:1px solid var(--border); }
+  .ex-body.open { display:block; }
+  .ex-body strong { color:var(--text); }
+  .ex-body ul { padding-left:15px; margin-top:5px; }
+  .ex-body li { margin-bottom:3px; }
+
+  /* PROGRESS */
+  .progress-week { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:13px 15px; margin-bottom:9px; }
+  .progress-week.complete { border-color:rgba(232,244,77,.3); }
+  .progress-week-title { font-family:'Bebas Neue',sans-serif; font-size:.95rem; letter-spacing:2px; color:var(--accent); margin-bottom:8px; }
+  .progress-bar-wrap { display:flex; align-items:center; gap:10px; }
+  .progress-bar-label { font-size:.68rem; color:var(--muted); width:72px; flex-shrink:0; }
+  .progress-bar-bg { flex:1; height:6px; background:var(--border); border-radius:100px; overflow:hidden; }
+  .progress-bar-fill { height:100%; background:var(--accent); border-radius:100px; transition:width .4s ease; }
+  .progress-pct { font-size:.68rem; color:var(--text); font-weight:600; width:28px; text-align:right; }
+
+  /* TIPS */
+  .tip-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+  @media(max-width:500px){.tip-grid{grid-template-columns:1fr;}}
+  .tip-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:13px; }
+  .tip-icon { font-size:1.2rem; margin-bottom:6px; }
+  .tip-title { font-weight:600; font-size:.78rem; margin-bottom:4px; color:var(--accent); }
+  .tip-text { font-size:.75rem; color:var(--muted); line-height:1.6; }
+  .form-rule { display:flex; align-items:flex-start; gap:9px; padding:10px 0; border-bottom:1px solid var(--border); }
+  .form-rule:last-child { border-bottom:none; }
+  .form-icon { font-size:1rem; flex-shrink:0; margin-top:1px; }
+  .form-rule-title { font-weight:600; font-size:.8rem; margin-bottom:2px; }
+  .form-rule-desc { font-size:.74rem; color:var(--muted); line-height:1.6; }
+
+  .section-title { font-family:'Bebas Neue',sans-serif; font-size:1.3rem; letter-spacing:3px; color:var(--accent); margin:20px 0 11px; padding-bottom:7px; border-bottom:1px solid var(--border); }
+  .section-title.orange { color:var(--accent2); border-color:rgba(244,148,77,.3); }
+  .small-label { font-size:.63rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-bottom:9px; }
+
+  /* WEIGHT BANNER */
+  .weight-banner {
+    display:flex; align-items:center; gap:14px;
+    background: linear-gradient(135deg, rgba(232,244,77,.08) 0%, rgba(232,244,77,.03) 100%);
+    border:1px solid rgba(232,244,77,.25);
+    border-radius:10px;
+    padding:12px 16px;
+    margin-bottom:16px;
+  }
+  .weight-icon { font-size:1.6rem; flex-shrink:0; }
+  .weight-info { flex:1; }
+  .weight-title { font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:2px; color:var(--accent); margin-bottom:2px; }
+  .weight-detail { font-size:.78rem; color:var(--muted); line-height:1.5; }
+  .weight-tag {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:2rem;
+    letter-spacing:1px;
+    color:var(--accent);
+    background:rgba(232,244,77,.1);
+    border:1px solid rgba(232,244,77,.3);
+    border-radius:8px;
+    padding:8px 14px;
+    white-space:nowrap;
+    flex-shrink:0;
+    text-align:center;
+    line-height:1.1;
+  }
+  .weight-next { font-size:.68rem; color:var(--muted); margin-top:3px; }
+  .weight-next span { color:var(--accent2); font-weight:600; }
+
+  /* WEIGHT PILL on exercise rows */
+  .weight-pill {
+    font-size:.65rem; font-weight:700;
+    background:rgba(232,244,77,.12);
+    color:var(--accent);
+    border:1px solid rgba(232,244,77,.25);
+    border-radius:12px;
+    padding:2px 8px;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+
+  /* WEIGHT ROADMAP (progress tab) */
+  .roadmap { display:flex; flex-direction:column; gap:0; margin-bottom:4px; }
+  .roadmap-row {
+    display:flex; align-items:center; gap:0;
+    position:relative;
+  }
+  .roadmap-dot {
+    width:14px; height:14px; border-radius:50%;
+    background:var(--border); border:2px solid var(--border);
+    flex-shrink:0; z-index:1; margin-right:12px;
+    transition:all .2s;
+  }
+  .roadmap-dot.active { background:var(--accent); border-color:var(--accent); }
+  .roadmap-dot.done   { background:var(--accent); border-color:var(--accent); }
+  .roadmap-line {
+    position:absolute; left:6px; top:14px;
+    width:2px; height:calc(100% + 1px);
+    background:var(--border);
+    z-index:0;
+  }
+  .roadmap-line.done { background:rgba(232,244,77,.4); }
+  .roadmap-row:last-child .roadmap-line { display:none; }
+  .roadmap-content {
+    flex:1; background:var(--surface); border:1px solid var(--border);
+    border-radius:8px; padding:10px 14px; margin-bottom:6px;
+    transition:border-color .2s;
+  }
+  .roadmap-content.active { border-color:rgba(232,244,77,.4); background:rgba(232,244,77,.05); }
+  .roadmap-content.done   { border-color:rgba(232,244,77,.2); }
+  .roadmap-weeks { font-size:.65rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:3px; }
+  .roadmap-weight { font-family:'Bebas Neue',sans-serif; font-size:1.2rem; letter-spacing:2px; color:var(--accent); }
+  .roadmap-desc { font-size:.73rem; color:var(--muted); margin-top:2px; line-height:1.5; }
+
+  /* ── WORKOUT MODE ── */
+  .workout-day-btn {
+    display:flex; align-items:center; gap:10px;
+    width:100%; padding:12px 16px; margin-bottom:8px;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:10px; cursor:pointer; transition:all .2s;
+    font-family:'DM Sans',sans-serif; color:var(--text); text-align:left;
+  }
+  .workout-day-btn:hover { border-color:var(--accent); background:#1f1f1f; }
+  .workout-day-btn .wdb-dot { width:10px;height:10px;border-radius:50%;flex-shrink:0; }
+  .workout-day-btn .wdb-name { font-family:'Bebas Neue',sans-serif; font-size:1.05rem; letter-spacing:2px; }
+  .workout-day-btn .wdb-label { font-size:.7rem; color:var(--muted); margin-left:auto; }
+  .workout-day-btn.rest-day { opacity:.45; pointer-events:none; }
+
+  .workout-header { display:flex; align-items:center; gap:10px; padding:0 0 14px; border-bottom:1px solid var(--border); margin-bottom:16px; flex-wrap:wrap; }
+  .workout-back { background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:6px 12px; cursor:pointer; font-size:.75rem; color:var(--muted); font-family:'DM Sans',sans-serif; transition:all .2s; }
+  .workout-back:hover { color:var(--text); border-color:var(--accent); }
+  .workout-title { font-family:'Bebas Neue',sans-serif; font-size:1.2rem; letter-spacing:3px; color:var(--accent); }
+  .workout-weight-chip { margin-left:auto; font-size:.68rem; font-weight:700; background:rgba(232,244,77,.12); color:var(--accent); border:1px solid rgba(232,244,77,.25); border-radius:12px; padding:3px 10px; }
+
+  .wk-ex-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; margin-bottom:10px; overflow:hidden; transition:border-color .2s; }
+  .wk-ex-card.wk-ex-done { border-color:rgba(232,244,77,.28); }
+  .wk-ex-header { display:flex; align-items:center; gap:10px; padding:11px 14px; border-bottom:1px solid var(--border); }
+  .wk-ex-num { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; color:var(--accent); width:22px; flex-shrink:0; }
+  .wk-ex-num.orange { color:var(--accent2); }
+  .wk-ex-name { font-weight:600; font-size:.86rem; flex:1; }
+  .wk-ex-done .wk-ex-name { color:var(--muted); text-decoration:line-through; }
+  .wk-ex-reps-tag { font-size:.68rem; color:var(--muted); background:var(--card); border:1px solid var(--border); border-radius:8px; padding:2px 8px; }
+  .wk-done-badge { font-size:.63rem; font-weight:700; color:var(--accent); background:rgba(232,244,77,.12); border:1px solid rgba(232,244,77,.22); border-radius:10px; padding:2px 8px; display:none; }
+  .wk-ex-done .wk-done-badge { display:inline-block; }
+
+  .wk-sets { padding:10px 14px 12px; display:flex; flex-direction:column; gap:6px; }
+  .wk-set-row { display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--card); border-radius:7px; border-left:3px solid var(--border); transition:all .2s; }
+  .wk-set-row.set-active  { border-left-color:var(--accent); background:#23231a; }
+  .wk-set-row.set-done    { border-left-color:rgba(232,244,77,.35); background:rgba(232,244,77,.04); opacity:.75; }
+  .wk-set-row.set-active.orange-set { border-left-color:var(--accent2); background:#231e14; }
+  .wk-set-row.set-done.orange-set   { border-left-color:rgba(244,148,77,.35); background:rgba(244,148,77,.04); }
+
+  .wk-set-label { font-size:.73rem; font-weight:600; color:var(--muted); width:44px; flex-shrink:0; }
+  .wk-set-row.set-active .wk-set-label { color:var(--accent); }
+  .wk-set-reps { font-size:.78rem; color:var(--muted); flex:1; }
+  .wk-set-row.set-active .wk-set-reps { color:var(--text); font-weight:500; }
+
+  .wk-set-btn { padding:6px 14px; border-radius:6px; font-size:.73rem; font-weight:700; cursor:pointer; transition:all .15s; border:none; font-family:'DM Sans',sans-serif; flex-shrink:0; }
+  .btn-do   { background:var(--accent); color:#000; }
+  .btn-do:hover { background:#d4df3a; }
+  .btn-do.orange-btn { background:var(--accent2); color:#000; }
+  .btn-do.orange-btn:hover { background:#e0833d; }
+  .btn-check { background:transparent; border:none; font-size:1.1rem; cursor:default; }
+
+  .rest-timer-wrap { margin:4px 14px 10px; background:var(--card); border:1px solid var(--border); border-radius:9px; overflow:hidden; display:none; }
+  .rest-timer-wrap.visible { display:block; }
+  .rest-timer-inner { padding:11px 14px; }
+  .rest-timer-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; }
+  .rest-timer-label { font-size:.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+  .rest-timer-count { font-family:'Bebas Neue',sans-serif; font-size:2rem; color:var(--accent); letter-spacing:2px; line-height:1; }
+  .rest-timer-skip { background:transparent; border:1px solid var(--border); border-radius:5px; padding:3px 10px; font-size:.67rem; color:var(--muted); cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .15s; }
+  .rest-timer-skip:hover { border-color:var(--accent2); color:var(--accent2); }
+  .rest-prog-bg { height:4px; background:var(--border); border-radius:100px; overflow:hidden; }
+  .rest-prog-fill { height:100%; background:var(--accent); border-radius:100px; transition:width 1s linear; }
+
+  .workout-complete { text-align:center; padding:30px 16px; background:var(--surface); border:1px solid rgba(232,244,77,.3); border-radius:12px; margin-top:8px; display:none; }
+  .workout-complete.visible { display:block; }
+  .wc-icon { font-size:2.8rem; margin-bottom:8px; }
+  .wc-title { font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:3px; color:var(--accent); margin-bottom:6px; }
+  .wc-sub { font-size:.8rem; color:var(--muted); line-height:1.7; }
+  .wc-btn { margin-top:16px; padding:10px 24px; background:var(--accent); border:none; border-radius:8px; font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:2px; color:#000; cursor:pointer; transition:background .15s; }
+  .wc-btn:hover { background:#d4df3a; }
+
+  /* ── COUNTDOWN OVERLAY ── */
+  .countdown-overlay {
+    position:fixed; inset:0; z-index:999;
+    background:rgba(13,13,13,.97);
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:10px;
+  }
+  .countdown-overlay.hidden { display:none; }
+  .countdown-ex-name { font-size:.8rem; color:var(--muted); text-transform:uppercase; letter-spacing:2px; text-align:center; padding:0 20px; }
+  .countdown-num { font-family:'Bebas Neue',sans-serif; font-size:9rem; line-height:1; color:var(--accent); animation:popIn .3s ease; }
+  .countdown-num.orange { color:var(--accent2); }
+  @keyframes popIn { from{transform:scale(1.5);opacity:0} to{transform:scale(1);opacity:1} }
+  .countdown-go { font-family:'Bebas Neue',sans-serif; font-size:5rem; letter-spacing:6px; color:var(--accent); animation:popIn .3s ease; }
+  .countdown-sub { font-size:.75rem; color:var(--muted); }
+
+  /* ── ACTIVE SET SCREEN ── */
+  .set-screen {
+    position:fixed; inset:0; z-index:998;
+    background:var(--bg);
+    display:flex; flex-direction:column;
+    overflow-y:auto;
+  }
+  .set-screen.hidden { display:none; }
+
+  .set-screen-header {
+    display:flex; align-items:center; gap:10px;
+    padding:14px 16px; background:var(--surface);
+    border-bottom:1px solid var(--border); flex-shrink:0;
+  }
+  .set-screen-back { background:transparent; border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--muted); font-size:.72rem; cursor:pointer; font-family:'DM Sans',sans-serif; }
+  .set-screen-back:hover { color:var(--text); border-color:var(--accent); }
+  .set-screen-title { font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:2px; color:var(--accent); flex:1; }
+  .set-screen-title.orange { color:var(--accent2); }
+  .set-screen-chip { font-size:.65rem; font-weight:700; background:rgba(232,244,77,.1); color:var(--accent); border:1px solid rgba(232,244,77,.2); border-radius:10px; padding:2px 8px; }
+
+  .set-screen-body { flex:1; display:flex; flex-direction:column; align-items:center; padding:20px 16px; gap:16px; }
+
+  /* exercise + set info */
+  .set-ex-name { font-weight:700; font-size:1.1rem; text-align:center; }
+  .set-info-row { display:flex; gap:10px; }
+  .set-info-chip { font-size:.72rem; color:var(--muted); background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:4px 12px; }
+
+  /* movement cue */
+  .cue-box {
+    width:100%; background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:16px; text-align:center;
+  }
+  .cue-label { font-size:.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:2px; margin-bottom:8px; }
+  .cue-arrow { font-size:3.5rem; line-height:1; margin-bottom:4px; transition:all .25s; }
+  .cue-phase { font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:4px; transition:color .25s; }
+  .cue-phase.up   { color:var(--accent); }
+  .cue-phase.down { color:var(--accent2); }
+  .cue-phase.hold { color:var(--rest-color); }
+
+  /* rep counter */
+  .rep-counter-wrap { width:100%; text-align:center; }
+  .rep-counter-label { font-size:.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:2px; margin-bottom:8px; }
+  .rep-counter-num { font-family:'Bebas Neue',sans-serif; font-size:6rem; line-height:1; color:var(--text); transition:all .1s; }
+  .rep-counter-num.bump { transform:scale(1.15); color:var(--accent); }
+  .rep-counter-num.orange-bump { transform:scale(1.15); color:var(--accent2); }
+  .rep-counter-target { font-size:.75rem; color:var(--muted); margin-top:2px; }
+
+  /* tap button */
+  .rep-tap-btn {
+    width:100%; max-width:320px; padding:22px;
+    border:none; border-radius:16px; cursor:pointer;
+    font-family:'Bebas Neue',sans-serif; font-size:1.6rem; letter-spacing:3px;
+    background:var(--accent); color:#000; transition:all .1s;
+    box-shadow:0 4px 20px rgba(232,244,77,.25);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .rep-tap-btn:active { transform:scale(.96); }
+  .rep-tap-btn.orange-tap { background:var(--accent2); box-shadow:0 4px 20px rgba(244,148,77,.25); }
+
+  /* undo + set dots */
+  .rep-actions { display:flex; gap:10px; align-items:center; width:100%; max-width:320px; }
+  .rep-undo-btn { flex:1; padding:10px; background:transparent; border:1px solid var(--border); border-radius:10px; color:var(--muted); font-size:.75rem; cursor:pointer; font-family:'DM Sans',sans-serif; }
+  .rep-undo-btn:hover { border-color:var(--accent2); color:var(--accent2); }
+  .set-dots { display:flex; gap:6px; justify-content:center; align-items:center; }
+  .set-dot { width:10px; height:10px; border-radius:50%; background:var(--border); transition:all .2s; }
+  .set-dot.dot-done { background:var(--accent); }
+  .set-dot.dot-active { background:var(--accent); box-shadow:0 0 0 3px rgba(232,244,77,.25); }
+  .set-dot.dot-done.orange-dot { background:var(--accent2); }
+  .set-dot.dot-active.orange-dot { background:var(--accent2); box-shadow:0 0 0 3px rgba(244,148,77,.25); }
+
+  /* rest full-screen */
+  .rest-screen {
+    position:fixed; inset:0; z-index:999;
+    background:rgba(13,13,13,.97);
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:10px;
+  }
+  .rest-screen.hidden { display:none; }
+  .rest-screen-label { font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:2px; }
+  .rest-screen-count { font-family:'Bebas Neue',sans-serif; font-size:7rem; line-height:1; color:var(--accent); }
+  .rest-screen-next { font-size:.78rem; color:var(--muted); }
+  .rest-screen-bar-bg { width:220px; height:5px; background:rgba(255,255,255,.1); border-radius:100px; overflow:hidden; margin-top:6px; }
+  .rest-screen-bar { height:100%; background:var(--accent); border-radius:100px; transition:width 1s linear; }
+  .rest-skip-btn { margin-top:12px; background:transparent; border:1px solid var(--border); border-radius:8px; padding:8px 20px; color:var(--muted); font-size:.75rem; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .2s; }
+  .rest-skip-btn:hover { border-color:var(--accent2); color:var(--accent2); }
+
+  /* ── DAY SELECTOR ── */
+  .day-selector {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+    margin-bottom: 16px;
+  }
+  .day-sel-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 2px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .15s;
+    position: relative;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .day-sel-btn:hover { background: #1f1f1f; }
+  .day-sel-btn.active-day { background: var(--card); border-color: var(--accent); }
+  .day-sel-btn.active-day.orange-day { border-color: var(--accent2); }
+  .day-sel-btn.active-day.rest-day-sel { border-color: var(--rest-color); }
+  .day-sel-short { font-size: .6rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 4px; }
+  .day-sel-dot { width: 8px; height: 8px; border-radius: 50%; margin-bottom: 3px; }
+  .day-sel-type { font-family: 'Bebas Neue', sans-serif; font-size: .7rem; letter-spacing: 1px; }
+  .day-sel-tick { position: absolute; top: 3px; right: 4px; font-size: .65rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>My Fitness Plan</h1>
+  <p>5'6" · 135 lbs · Beginner · Dumbbells + Push-Ups · 1 Year Program</p>
+</header>
+
+<div class="stats-bar">
+  <div class="stat"><div class="stat-value">3</div><div class="stat-label">Curl Days/wk</div></div>
+  <div class="stat"><div class="stat-value">2</div><div class="stat-label">Push-Up Days/wk</div></div>
+  <div class="stat"><div class="stat-value">2</div><div class="stat-label">Rest Days/wk</div></div>
+  <div class="stat"><div class="stat-value" id="overall-pct">0%</div><div class="stat-label">Overall Done</div></div>
+</div>
+
+<!-- WEEK NAVIGATOR -->
+<div class="week-nav">
+  <button id="prev-btn" onclick="changeWeek(-1)">◀ Prev</button>
+  <div>
+    <div class="week-label" id="week-label">WEEK 1</div>
+    <div class="week-pct" id="week-pct-label" style="text-align:center"></div>
+  </div>
+  <button id="next-btn" onclick="changeWeek(1)">Next ▶</button>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showPanel('schedule',this)">📅 Schedule & Track</div>
+  <div class="tab" onclick="showPanel('workout',this)">⏱️ Workout Mode</div>
+  <div class="tab" onclick="showPanel('exercises',this)">💪 Exercises</div>
+  <div class="tab" onclick="showPanel('progress',this)">📈 Progress</div>
+  <div class="tab" onclick="showPanel('tips',this)">🧠 Tips & Form</div>
+</div>
+
+<div class="content">
+
+<!-- ======= SCHEDULE & TRACK ======= -->
+<div class="panel active" id="panel-schedule">
+
+  <!-- Weight banner -->
+  <div class="weight-banner" id="weight-banner"></div>
+
+  <!-- 7-day selector -->
+  <div class="day-selector" id="day-selector"></div>
+
+  <!-- Single day content -->
+  <div id="day-content"></div>
+
+  <div class="section-title" style="margin-top:22px">Progression Rules</div>
+  <div class="tip-card">
+    <div class="tip-text">
+      <strong style="color:var(--accent)">Weeks 1–10:</strong> Stay at 10 lbs for 10 full weeks. Form first, always.<br><br>
+      <strong style="color:var(--accent)">Weeks 11–22:</strong> Move to 15 lbs. Twelve weeks to fully own this weight.<br><br>
+      <strong style="color:var(--accent)">Weeks 23–34:</strong> Move to 20 lbs. No swinging — strict form only for 12 weeks.<br><br>
+      <strong style="color:var(--accent)">Weeks 35–44:</strong> Move to 22 lbs. A bridge to 25 lbs — protects your joints.<br><br>
+      <strong style="color:var(--accent)">Weeks 45–52:</strong> Move to 25 lbs. Finish the year strong.
+    </div>
+  </div>
+</div>
+
+<!-- ======= WORKOUT MODE ======= -->
+<div class="panel" id="panel-workout">
+  <div class="small-label">Live set tracker with rest timers</div>
+  <div id="workout-day-select"></div>
+  <div id="workout-content"></div>
+</div>
+
+<!-- ======= EXERCISES ======= -->
+<div class="panel" id="panel-exercises">
+  <div class="section-title">Bicep Exercises</div>
+
+  <div class="exercise-card">
+    <div class="ex-header" onclick="toggleEx(this)">
+      <div class="ex-number">01</div>
+      <div class="ex-info"><div class="ex-name">Standard Dumbbell Curl</div><div class="ex-meta">Primary bicep builder · Sessions A & C</div></div>
+      <div class="ex-badge">Foundation</div>
+      <a class="yt-link" href="https://www.youtube.com/results?search_query=how+to+do+dumbbell+curl+proper+form" target="_blank" onclick="event.stopPropagation()">▶ YouTube</a>
+      <div class="ex-toggle">▼</div>
+    </div>
+    <div class="ex-body">
+      <strong>How to do it:</strong>
+      <ul>
+        <li>Stand upright, feet shoulder-width apart, one dumbbell in each hand.</li>
+        <li>Keep elbows <strong>pinned to your sides</strong> throughout the whole movement.</li>
+        <li>Curl both dumbbells up, rotating palms to face your shoulders at the top.</li>
+        <li>Squeeze your biceps hard at the top for 1 second.</li>
+        <li>Lower <strong>slowly — 2–3 seconds</strong> back to the start position.</li>
+      </ul>
+      <br><strong>Tempo: 2-1-2-1</strong> — 2 seconds up, hold 1 second at the top, 2 seconds down, brief pause at the bottom before the next rep.
+    </div>
+  </div>
+
+  <div class="exercise-card">
+    <div class="ex-header" onclick="toggleEx(this)">
+      <div class="ex-number">02</div>
+      <div class="ex-info"><div class="ex-name">Hammer Curl</div><div class="ex-meta">Brachialis & forearm · Sessions A & C</div></div>
+      <div class="ex-badge">Foundation</div>
+      <a class="yt-link" href="https://www.youtube.com/results?search_query=how+to+do+hammer+curl+proper+form" target="_blank" onclick="event.stopPropagation()">▶ YouTube</a>
+      <div class="ex-toggle">▼</div>
+    </div>
+    <div class="ex-body">
+      <strong>How to do it:</strong>
+      <ul>
+        <li>Hold dumbbells with a <strong>neutral grip</strong> — palms facing each other, like holding a hammer.</li>
+        <li>Keep elbows locked at your sides the entire time.</li>
+        <li>Curl straight up without rotating your wrists at all.</li>
+        <li>Lower slowly and controlled back to start.</li>
+      </ul>
+      <br><strong>Why it matters:</strong> Builds outer bicep and forearm thickness — gives your arm a fuller look.
+    </div>
+  </div>
+
+  <div class="exercise-card">
+    <div class="ex-header" onclick="toggleEx(this)">
+      <div class="ex-number">03</div>
+      <div class="ex-info"><div class="ex-name">Concentration Curl</div><div class="ex-meta">Peak isolation · Sessions A & C</div></div>
+      <div class="ex-badge">Isolation</div>
+      <a class="yt-link" href="https://www.youtube.com/results?search_query=how+to+do+concentration+curl+proper+form" target="_blank" onclick="event.stopPropagation()">▶ YouTube</a>
+      <div class="ex-toggle">▼</div>
+    </div>
+    <div class="ex-body">
+      <strong>How to do it:</strong>
+      <ul>
+        <li>Sit on a chair, feet flat. Hold one dumbbell in your right hand.</li>
+        <li>Rest your right elbow on the <strong>inside of your right thigh</strong>.</li>
+        <li>Let the dumbbell hang down, then curl it up toward your shoulder.</li>
+        <li>Squeeze at the top. Lower slowly. Complete all reps, then switch arms.</li>
+      </ul>
+      <br><strong>Why it matters:</strong> Locks your elbow so you can't cheat — pure bicep isolation that builds the peak.
+    </div>
+  </div>
+
+  <div class="exercise-card">
+    <div class="ex-header" onclick="toggleEx(this)">
+      <div class="ex-number">04</div>
+      <div class="ex-info"><div class="ex-name">Slow Eccentric Curl</div><div class="ex-meta">Tempo: 2s up · 1s hold · 4s down · Sessions B & C</div></div>
+      <div class="ex-badge">Control</div>
+      <a class="yt-link" href="https://www.youtube.com/results?search_query=slow+eccentric+bicep+curl+tutorial" target="_blank" onclick="event.stopPropagation()">▶ YouTube</a>
+      <div class="ex-toggle">▼</div>
+    </div>
+    <div class="ex-body">
+      <strong>How to do it:</strong>
+      <ul>
+        <li>Same setup as a standard curl.</li>
+        <li>Curl up in <strong>2 seconds</strong>, squeeze and hold at the top for <strong>1 second</strong>.</li>
+        <li>Lower the weight very slowly — <strong>count 4 full seconds going down</strong>.</li>
+        <li>Pause briefly at the bottom before starting the next rep.</li>
+        <li>Fight the descent the whole way. Never let gravity take over.</li>
+      </ul>
+      <br><strong>Tempo: 2-1-4-1</strong> — This is the key difference from a standard curl. The 4-second lowering phase maximises time under tension and creates significantly more muscle growth stimulus.
+    </div>
+  </div>
+
+  <div class="exercise-card">
+    <div class="ex-header" onclick="toggleEx(this)">
+      <div class="ex-number">05</div>
+      <div class="ex-info"><div class="ex-name">Incline Dumbbell Curl</div><div class="ex-meta">Long head stretch · Session B</div></div>
+      <div class="ex-badge">Stretch</div>
+      <a class="yt-link" href="https://www.youtube.com/results?search_query=how+to+do+incline+dumbbell+curl+proper+form" target="_blank" onclick="event.stopPropagation()">▶ YouTube</a>
+      <div class="ex-toggle">▼</div>
+    </div>
+    <div class="ex-body">
+      <strong>How to do it:</strong>
+      <ul>
+        <li>Sit back on an inclined chair or sofa at roughly 45–60°.</li>
+        <li>Let your arms hang straight down behind your body — feel the deep stretch.</li>
+        <li>Curl both dumbbells up slowly from that fully stretched position.</li>
+        <li>Lower back down slowly. Do not swing forward off the seat.</li>
+      </ul>
+      <br><strong>Why it matters:</strong> Deeply stretches the long head of the bicep — builds the visible peak when you flex.
+    </div>
+  </div>
+
+  <div class="exercise-card">
+    <div class="ex-header" onclick="toggleEx(this)">
+      <div class="ex-number">06</div>
+      <div class="ex-info"><div class="ex-name">Cross-Body Hammer Curl</div><div class="ex-meta">Brachialis depth · Session B</div></div>
+      <div class="ex-badge">Control</div>
+      <a class="yt-link" href="https://www.youtube.com/results?search_query=how+to+do+cross+body+hammer+curl" target="_blank" onclick="event.stopPropagation()">▶ YouTube</a>
+      <div class="ex-toggle">▼</div>
+    </div>
+    <div class="ex-body">
+      <strong>How to do it:</strong>
+      <ul>
+        <li>Hold dumbbells with a neutral grip (palms facing in).</li>
+        <li>Curl one dumbbell <strong>across your body</strong> toward the opposite shoulder.</li>
+        <li>Alternate arms each rep. Keep your elbow close to your torso throughout.</li>
+      </ul>
+      <br><strong>Why it matters:</strong> Develops the brachialis (muscle beneath the bicep), which pushes the bicep up, making your arm look bigger.
+    </div>
+  </div>
+
+  <div class="section-title orange">Push-Up Exercises</div>
+
+  <div class="exercise-card">
+    <div class="ex-header" onclick="toggleEx(this)">
+      <div class="ex-number orange">01</div>
+      <div class="ex-info"><div class="ex-name">Standard Push-Up</div><div class="ex-meta">Chest, shoulders, triceps · Push-Up Days 1 & 2</div></div>
+      <div class="ex-badge orange">Core Move</div>
+      <a class="yt-link" href="https://www.youtube.com/results?search_query=how+to+do+push+up+proper+form+beginners" target="_blank" onclick="event.stopPropagation()">▶ YouTube</a>
+      <div class="ex-toggle">▼</div>
+    </div>
+    <div class="ex-body">
+      <strong>How to do it:</strong>
+      <ul>
+        <li>Hands slightly wider than shoulder-width, fingers pointing forward.</li>
+        <li>Straight line from head to heels — <strong>no sagging hips or raised butt</strong>.</li>
+        <li>Lower your chest to just above the floor.</li>
+        <li>Push back up explosively and lock out your arms at the top.</li>
+      </ul>
+      <br><strong>If too hard:</strong> Drop to knee push-ups until you can do 10 clean full reps.
+    </div>
+  </div>
+
+  <div class="exercise-card">
+    <div class="ex-header" onclick="toggleEx(this)">
+      <div class="ex-number orange">02</div>
+      <div class="ex-info"><div class="ex-name">Wide Grip Push-Up</div><div class="ex-meta">Chest focus · Push-Up Day 1</div></div>
+      <div class="ex-badge orange">Variation</div>
+      <a class="yt-link" href="https://www.youtube.com/results?search_query=how+to+do+wide+grip+push+up+proper+form" target="_blank" onclick="event.stopPropagation()">▶ YouTube</a>
+      <div class="ex-toggle">▼</div>
+    </div>
+    <div class="ex-body">
+      <strong>How to do it:</strong>
+      <ul>
+        <li>Place hands about 6–8 inches wider than your shoulders.</li>
+        <li>Lower your chest with elbows flaring out to the sides.</li>
+        <li>Push back up. Wider grip = more chest activation.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="exercise-card">
+    <div class="ex-header" onclick="toggleEx(this)">
+      <div class="ex-number orange">03</div>
+      <div class="ex-info"><div class="ex-name">Knee Push-Up</div><div class="ex-meta">Beginner modifier · Push-Up Day 1</div></div>
+      <div class="ex-badge orange">Beginner</div>
+      <a class="yt-link" href="https://www.youtube.com/results?search_query=how+to+do+knee+push+up+proper+form" target="_blank" onclick="event.stopPropagation()">▶ YouTube</a>
+      <div class="ex-toggle">▼</div>
+    </div>
+    <div class="ex-body">
+      <strong>How to do it:</strong>
+      <ul>
+        <li>Get into push-up position, then lower your knees to the floor.</li>
+        <li>Keep your back straight — don't let your hips sag or rise.</li>
+        <li>Perform the push-up movement from the knees.</li>
+      </ul>
+      <br><strong>Goal:</strong> Use until you can do 10 clean standard push-ups in a row, then remove them.
+    </div>
+  </div>
+
+  <div class="exercise-card">
+    <div class="ex-header" onclick="toggleEx(this)">
+      <div class="ex-number orange">04</div>
+      <div class="ex-info"><div class="ex-name">Diamond Push-Up</div><div class="ex-meta">Triceps · Push-Up Day 2</div></div>
+      <div class="ex-badge orange">Advanced</div>
+      <a class="yt-link" href="https://www.youtube.com/results?search_query=how+to+do+diamond+push+up+proper+form" target="_blank" onclick="event.stopPropagation()">▶ YouTube</a>
+      <div class="ex-toggle">▼</div>
+    </div>
+    <div class="ex-body">
+      <strong>How to do it:</strong>
+      <ul>
+        <li>Place both hands together under your chest, forming a <strong>diamond shape</strong> with thumbs and index fingers.</li>
+        <li>Keep elbows close to your body as you lower down.</li>
+        <li>Push back up. Harder than standard — start with fewer reps.</li>
+      </ul>
+      <br><strong>Why it matters:</strong> Triceps make up 2/3 of your upper arm. Critical for overall arm size.
+    </div>
+  </div>
+
+  <div class="exercise-card">
+    <div class="ex-header" onclick="toggleEx(this)">
+      <div class="ex-number orange">05</div>
+      <div class="ex-info"><div class="ex-name">Incline Push-Up</div><div class="ex-meta">Lower chest · Push-Up Day 2</div></div>
+      <div class="ex-badge orange">Variation</div>
+      <a class="yt-link" href="https://www.youtube.com/results?search_query=how+to+do+incline+push+up+proper+form" target="_blank" onclick="event.stopPropagation()">▶ YouTube</a>
+      <div class="ex-toggle">▼</div>
+    </div>
+    <div class="ex-body">
+      <strong>How to do it:</strong>
+      <ul>
+        <li>Place hands on a raised surface — chair, couch armrest, or table edge.</li>
+        <li>Body at a downward angle, feet flat on the floor.</li>
+        <li>Perform the push-up as normal. Incline targets the lower chest.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ======= PROGRESS ======= -->
+<div class="panel" id="panel-progress">
+  <div class="section-title">52-Week Progress</div>
+  <div id="progress-display"></div>
+
+  <div class="section-title" style="margin-top:18px">💪 Weight Progression Roadmap</div>
+  <div class="roadmap" id="weight-roadmap"></div>
+
+  <div class="section-title" style="margin-top:18px">Milestones</div>
+  <div class="tip-card">
+    <div class="tip-text">
+      <strong style="color:var(--accent)">Week 10:</strong> Form locked in at 10 lbs. Ready to move to 15 lbs.<br><br>
+      <strong style="color:var(--accent)">Week 22:</strong> Comfortable and controlled at 15 lbs. Arms noticeably more defined.<br><br>
+      <strong style="color:var(--accent)">Week 34:</strong> Curling 20 lbs with strict form. Real visible muscle development.<br><br>
+      <strong style="color:var(--accent)">Week 44:</strong> 22 lbs clean — the bridge is crossed. Final push incoming.<br><br>
+      <strong style="color:var(--accent)">Week 52:</strong> 25 lbs per arm. One full year of consistent work. You are no longer a beginner.
+    </div>
+  </div>
+</div>
+
+<!-- ======= TIPS ======= -->
+<div class="panel" id="panel-tips">
+  <div class="section-title">Form Rules</div>
+  <div class="tip-card" style="margin-bottom:16px">
+    <div class="form-rule"><div class="form-icon">🔒</div><div><div class="form-rule-title">Pin Your Elbows</div><div class="form-rule-desc">Keep elbows locked at your sides during all curls. Drifting elbows reduce bicep activation and strain the shoulder.</div></div></div>
+    <div class="form-rule"><div class="form-icon">📏</div><div><div class="form-rule-title">Full Range of Motion</div><div class="form-rule-desc">Lower the weight all the way down every rep. Partial reps build partial muscles. Full extension equals full growth.</div></div></div>
+    <div class="form-rule"><div class="form-icon">🐢</div><div><div class="form-rule-title">Control the Descent</div><div class="form-rule-desc">Take 2–3 seconds on the way down. Never drop the weight — the lowering phase is where most growth happens.</div></div></div>
+    <div class="form-rule"><div class="form-icon">🚫</div><div><div class="form-rule-title">No Swinging</div><div class="form-rule-desc">If you're swinging your back or hips to lift, the weight is too heavy. Drop 2–5 lbs and do it properly.</div></div></div>
+    <div class="form-rule"><div class="form-icon">💨</div><div><div class="form-rule-title">Breathe Correctly</div><div class="form-rule-desc">Exhale on the curl up, inhale on the way down. Never hold your breath during a set.</div></div></div>
+    <div class="form-rule"><div class="form-icon">⏸️</div><div><div class="form-rule-title">Squeeze at the Top</div><div class="form-rule-desc">Hold 1 full second at the top and flex hard. Builds the mind-muscle connection and increases the growth signal.</div></div></div>
+  </div>
+  <div class="section-title">Nutrition Basics</div>
+  <div class="tip-grid">
+    <div class="tip-card"><div class="tip-icon">🥩</div><div class="tip-title">Protein Goal</div><div class="tip-text">Aim for <strong>100–110g protein/day</strong>. Sources: chicken, eggs, Greek yogurt, tuna, cottage cheese, protein shakes.</div></div>
+    <div class="tip-card"><div class="tip-icon">🍽️</div><div class="tip-title">Eat Enough</div><div class="tip-text">At 135 lbs eat at <strong>maintenance or a small surplus</strong> to build muscle. Undereating kills all gains.</div></div>
+    <div class="tip-card"><div class="tip-icon">💧</div><div class="tip-title">Stay Hydrated</div><div class="tip-text">Drink <strong>2–3 liters of water daily</strong>. Dehydration reduces strength, performance, and recovery speed.</div></div>
+    <div class="tip-card"><div class="tip-icon">😴</div><div class="tip-title">Sleep = Gains</div><div class="tip-text">Muscles grow during sleep. Aim for <strong>7–9 hours per night</strong>. Poor sleep stalls progress fast.</div></div>
+  </div>
+</div>
+
+</div><!-- end .content -->
+
+<script>
+// ─── DATA ────────────────────────────────────────────────
+const DAYS = [
+  { name:'Monday',    short:'Mon', type:'bicep',  label:'Session A — Foundation', exercises:[
+    { name:'Standard Dumbbell Curl',      meta:'3 sets · 10–12 reps · 60s rest', sets:3, reps:'10–12', rest:60,  pace:[{p:'UP',s:2},{p:'HOLD',s:1},{p:'DOWN',s:2},{p:'HOLD',s:1}], url:'https://www.youtube.com/results?search_query=how+to+do+dumbbell+curl+proper+form' },
+    { name:'Hammer Curl',                 meta:'3 sets · 10–12 reps · 60s rest', sets:3, reps:'10–12', rest:60,  pace:[{p:'UP',s:2},{p:'HOLD',s:1},{p:'DOWN',s:2},{p:'HOLD',s:1}], url:'https://www.youtube.com/results?search_query=how+to+do+hammer+curl+proper+form' },
+    { name:'Concentration Curl',          meta:'2 sets · 12–15 reps · 45s rest', sets:2, reps:'12–15', rest:45,  pace:[{p:'UP',s:2},{p:'HOLD',s:1},{p:'DOWN',s:2},{p:'HOLD',s:1}], url:'https://www.youtube.com/results?search_query=how+to+do+concentration+curl+proper+form' },
+  ]},
+  { name:'Tuesday',   short:'Tue', type:'rest',   label:'Rest Day', exercises:[] },
+  { name:'Wednesday', short:'Wed', type:'pushup', label:'Push-Up Day 1 — Standard', exercises:[
+    { name:'Standard Push-Up',            meta:'3 sets · 8–12 reps · 60s rest',  sets:3, reps:'8–12',  rest:60,  pace:[{p:'DOWN',s:2},{p:'HOLD',s:1},{p:'UP',s:2},{p:'HOLD',s:1}], url:'https://www.youtube.com/results?search_query=how+to+do+push+up+proper+form+beginners' },
+    { name:'Wide Grip Push-Up',           meta:'3 sets · 8–10 reps · 60s rest',  sets:3, reps:'8–10',  rest:60,  pace:[{p:'DOWN',s:2},{p:'HOLD',s:1},{p:'UP',s:2},{p:'HOLD',s:1}], url:'https://www.youtube.com/results?search_query=how+to+do+wide+grip+push+up+proper+form' },
+    { name:'Knee Push-Up',                meta:'2 sets · 12–15 reps · 45s rest', sets:2, reps:'12–15', rest:45,  pace:[{p:'DOWN',s:2},{p:'HOLD',s:1},{p:'UP',s:2},{p:'HOLD',s:1}], url:'https://www.youtube.com/results?search_query=how+to+do+knee+push+up+proper+form' },
+  ]},
+  { name:'Thursday',  short:'Thu', type:'bicep',  label:'Session B — Control', exercises:[
+    { name:'Slow Eccentric Curl (4s down)',meta:'3 sets · 8–10 reps · 75s rest',  sets:3, reps:'8–10',  rest:75,  pace:[{p:'UP',s:2},{p:'HOLD',s:1},{p:'DOWN',s:4},{p:'HOLD',s:1}], url:'https://www.youtube.com/results?search_query=slow+eccentric+bicep+curl+tutorial' },
+    { name:'Incline Dumbbell Curl',        meta:'3 sets · 10–12 reps · 60s rest', sets:3, reps:'10–12', rest:60,  pace:[{p:'UP',s:2},{p:'HOLD',s:1},{p:'DOWN',s:2},{p:'HOLD',s:1}], url:'https://www.youtube.com/results?search_query=how+to+do+incline+dumbbell+curl+proper+form' },
+    { name:'Cross-Body Hammer Curl',       meta:'2 sets · 12 each · 45s rest',    sets:2, reps:'12',    rest:45,  pace:[{p:'UP',s:2},{p:'HOLD',s:1},{p:'DOWN',s:2},{p:'HOLD',s:1}], url:'https://www.youtube.com/results?search_query=how+to+do+cross+body+hammer+curl' },
+  ]},
+  { name:'Friday',    short:'Fri', type:'rest',   label:'Rest Day', exercises:[] },
+  { name:'Saturday',  short:'Sat', type:'pushup', label:'Push-Up Day 2 — Variation', exercises:[
+    { name:'Diamond Push-Up',             meta:'3 sets · 6–10 reps · 75s rest',  sets:3, reps:'6–10',  rest:75,  pace:[{p:'DOWN',s:2},{p:'HOLD',s:1},{p:'UP',s:2},{p:'HOLD',s:1}], url:'https://www.youtube.com/results?search_query=how+to+do+diamond+push+up+proper+form' },
+    { name:'Standard Push-Up',            meta:'3 sets · 10–12 reps · 60s rest', sets:3, reps:'10–12', rest:60,  pace:[{p:'DOWN',s:2},{p:'HOLD',s:1},{p:'UP',s:2},{p:'HOLD',s:1}], url:'https://www.youtube.com/results?search_query=how+to+do+push+up+proper+form+beginners' },
+    { name:'Incline Push-Up',             meta:'2 sets · 12 reps · 45s rest',    sets:2, reps:'12',    rest:45,  pace:[{p:'DOWN',s:2},{p:'HOLD',s:1},{p:'UP',s:2},{p:'HOLD',s:1}], url:'https://www.youtube.com/results?search_query=how+to+do+incline+push+up+proper+form' },
+  ]},
+  { name:'Sunday',    short:'Sun', type:'bicep',  label:'Session C — Burn Out', exercises:[
+    { name:'Standard Dumbbell Curl',      meta:'2 sets · 15 reps · 45s rest',    sets:2, reps:'15',    rest:45,  pace:[{p:'UP',s:2},{p:'HOLD',s:1},{p:'DOWN',s:2},{p:'HOLD',s:1}], url:'https://www.youtube.com/results?search_query=how+to+do+dumbbell+curl+proper+form' },
+    { name:'Hammer Curl',                 meta:'2 sets · 15 reps · 45s rest',    sets:2, reps:'15',    rest:45,  pace:[{p:'UP',s:2},{p:'HOLD',s:1},{p:'DOWN',s:2},{p:'HOLD',s:1}], url:'https://www.youtube.com/results?search_query=how+to+do+hammer+curl+proper+form' },
+    { name:'Concentration Curl',          meta:'3 sets · 12 reps · 45s rest',    sets:3, reps:'12',    rest:45,  pace:[{p:'UP',s:2},{p:'HOLD',s:1},{p:'DOWN',s:2},{p:'HOLD',s:1}], url:'https://www.youtube.com/results?search_query=how+to+do+concentration+curl+proper+form' },
+    { name:'Slow Eccentric Curl',         meta:'2 sets · 10 reps · 60s rest',    sets:2, reps:'10',    rest:60,  pace:[{p:'UP',s:2},{p:'HOLD',s:1},{p:'DOWN',s:4},{p:'HOLD',s:1}], url:'https://www.youtube.com/results?search_query=slow+eccentric+bicep+curl+tutorial' },
+  ]},
+];
+const WEEKS = 52;
+let currentWeek = 1;
+
+// ─── WEIGHT PROGRESSION ──────────────────────────────────
+const WEIGHT_PLAN = [
+  { weeks:[1,10],  weight:'10 lbs', label:'Weeks 1–10',  desc:'Ten weeks of pure form training. Lock in every movement — pinned elbows, full range of motion, 2–3 second descent. Your tendons and joints need this time as much as your muscles do.', next:'Move to 15 lbs only when 10 lbs feels completely effortless for two full weeks of sessions in a row.' },
+  { weeks:[11,22], weight:'15 lbs', label:'Weeks 11–22', desc:'First real jump. Twelve weeks here — your body needs this long to fully adapt to the new load. Focus on the squeeze at the top and that slow controlled descent every single rep.', next:'Move to 20 lbs when 15 lbs feels like a warm-up weight and your form is rock solid.' },
+  { weeks:[23,34], weight:'20 lbs', label:'Weeks 23–34', desc:'Intermediate territory. Twelve weeks at 20 lbs builds serious foundational strength. No swinging, no shortcuts. If form ever breaks down, drop back to 15 lbs and rebuild before continuing.', next:'Move to 22 lbs when 20 lbs is fully controlled with zero form breakdown across two consecutive weeks.' },
+  { weeks:[35,44], weight:'22 lbs', label:'Weeks 35–44', desc:'A stepping stone between 20 and 25 — this jump exists to protect your joints. Ten weeks here to bridge the gap safely. Arms should be visibly developed and noticeably stronger by now.', next:'Move to 25 lbs when 22 lbs feels completely manageable across all sessions in a week.' },
+  { weeks:[45,52], weight:'25 lbs', label:'Weeks 45–52', desc:'The finish line. One full year of consistent work and you are curling 25 lbs per arm with clean form. That is a transformation most people never achieve. Push your reps hard and finish strong.', next:'After Week 52 you are well beyond beginner level — consider a full structured arm and upper body program.' },
+];
+
+function getWeightForWeek(week){
+  return WEIGHT_PLAN.find(p => week >= p.weeks[0] && week <= p.weeks[1]) || WEIGHT_PLAN[0];
+}
+
+// ─── STATE ───────────────────────────────────────────────
+function getState(){ try{ return JSON.parse(localStorage.getItem('fitV4')||'{}'); }catch{ return {}; } }
+function saveState(s){ try{ localStorage.setItem('fitV4',JSON.stringify(s)); }catch{} }
+
+// ex checked
+function isExChecked(week, day, ex){
+  const s=getState(); return !!(s[week]&&s[week][day]&&s[week][day].ex&&s[week][day].ex[ex]);
+}
+function toggleEx2(week, day, ex){
+  const s=getState();
+  if(!s[week])s[week]={};
+  if(!s[week][day])s[week][day]={};
+  if(!s[week][day].ex)s[week][day].ex={};
+  s[week][day].ex[ex]=!s[week][day].ex[ex];
+  saveState(s);
+}
+// day marked complete
+function isDayDone(week, day){
+  const s=getState(); return !!(s[week]&&s[week][day]&&s[week][day].dayDone);
+}
+function toggleDayDone(week, day){
+  const s=getState();
+  if(!s[week])s[week]={};
+  if(!s[week][day])s[week][day]={};
+  s[week][day].dayDone=!s[week][day].dayDone;
+  saveState(s);
+}
+
+// ─── COMPLETION CALC ─────────────────────────────────────
+function weekPct(week){
+  // count training days (non-rest) — day done counts as 1, else sum exercises
+  let total=0, done=0;
+  DAYS.forEach((day,di)=>{
+    if(day.type==='rest') return;
+    total++; // 1 point per training day
+    if(isDayDone(week,di)){ done++; return; }
+    // partial credit via exercises
+    const exDone = day.exercises.filter((_,ei)=>isExChecked(week,di,ei)).length;
+    done += exDone/day.exercises.length;
+  });
+  return total===0?0:Math.round((done/total)*100);
+}
+function overallPct(){
+  let sum=0;
+  for(let w=1;w<=WEEKS;w++) sum+=weekPct(w);
+  return Math.round(sum/WEEKS);
+}
+
+// ─── TAB SWITCHING (defined later in Workout Mode section)
+
+// ─── EXERCISE DETAIL ACCORDION ───────────────────────────
+function toggleEx(header){
+  const body=header.nextElementSibling;
+  const tog=header.querySelector('.ex-toggle');
+  body.classList.toggle('open');
+  tog.classList.toggle('open');
+}
+
+// ─── WEEK NAV ────────────────────────────────────────────
+function changeWeek(delta){
+  currentWeek=Math.max(1,Math.min(WEEKS,currentWeek+delta));
+  renderSchedule();
+}
+
+// ─── RENDER SCHEDULE ─────────────────────────────────────
+function renderSchedule(){
+  // week label
+  const pct=weekPct(currentWeek);
+  document.getElementById('week-label').textContent='WEEK '+currentWeek;
+  document.getElementById('week-pct-label').textContent=pct>0?pct+'% complete':'';
+  document.getElementById('prev-btn').disabled=currentWeek===1;
+  document.getElementById('next-btn').disabled=currentWeek===WEEKS;
+
+  // weight banner
+  const wp = getWeightForWeek(currentWeek);
+  const bannerEl = document.getElementById('weight-banner');
+  bannerEl.innerHTML = `
+    <div class="weight-icon">🏋️</div>
+    <div class="weight-info">
+      <div class="weight-title">Recommended Curl Weight</div>
+      <div class="weight-detail">${wp.desc}</div>
+    </div>
+    <div class="weight-tag">${wp.weight.replace(' lbs','')}<span style="font-size:.9rem;opacity:.7;margin-left:2px">lbs</span><br><span style="font-size:.5rem;letter-spacing:1.5px;opacity:.6;text-transform:uppercase">per arm</span></div>
+  `;
+
+  // figure out today
+  const todayJs = new Date().getDay();
+  const todayMap = [6,0,1,2,3,4,5];
+  const todayDi  = todayMap[todayJs];
+  if(typeof selectedDay === 'undefined') window.selectedDay = todayDi;
+
+  // ── 7-DAY SELECTOR ──
+  const selEl = document.getElementById('day-selector');
+  selEl.innerHTML = '';
+  DAYS.forEach((day, di) => {
+    const exAllDone = day.exercises.length>0 && day.exercises.every((_,ei)=>isExChecked(currentWeek,di,ei));
+    const dayDone   = isDayDone(currentWeek,di) || exAllDone;
+    const dotColor  = day.type==='bicep'?'var(--accent)':day.type==='pushup'?'var(--accent2)':'var(--rest-color)';
+    const typeLabel = day.type==='bicep'?'Curls':day.type==='pushup'?'Push':'Rest';
+    const typeColor = day.type==='bicep'?'var(--accent)':day.type==='pushup'?'var(--accent2)':'var(--rest-color)';
+    const isActive  = di === window.selectedDay;
+    const isToday   = di === todayDi;
+
+    const btn = document.createElement('button');
+    btn.className = `day-sel-btn${isActive?' active-day':''}${day.type==='pushup'?' orange-day':''}${day.type==='rest'?' rest-day-sel':''}`;
+    btn.innerHTML = `
+      ${dayDone && day.type!=='rest' ? '<div class="day-sel-tick">✅</div>' : ''}
+      ${isToday && !dayDone ? '<div class="day-sel-tick" style="color:var(--accent2)">•</div>' : ''}
+      <div class="day-sel-short">${day.short}</div>
+      <div class="day-sel-dot" style="background:${dotColor}"></div>
+      <div class="day-sel-type" style="color:${typeColor}">${typeLabel}</div>
+    `;
+    btn.addEventListener('click', () => {
+      window.selectedDay = di;
+      renderSchedule();
+    });
+    selEl.appendChild(btn);
+  });
+
+  // ── SINGLE DAY VIEW ──
+  const contentEl = document.getElementById('day-content');
+  contentEl.innerHTML = '';
+  const day    = DAYS[window.selectedDay];
+  const di     = window.selectedDay;
+  const isOrange = day.type==='pushup';
+  const exAllDone= day.exercises.length>0 && day.exercises.every((_,ei)=>isExChecked(currentWeek,di,ei));
+  const dayDone  = isDayDone(currentWeek,di) || exAllDone;
+  const hdrColor = day.type==='bicep'?'var(--accent)':day.type==='pushup'?'var(--accent2)':'var(--rest-color)';
+
+  const block = document.createElement('div');
+  block.className = `session-block${dayDone&&day.type!=='rest'?(isOrange?' day-complete pushup-day':' day-complete'):''}`;
+
+  // day header
+  const hdr = document.createElement('div');
+  hdr.className = 'session-header';
+  hdr.innerHTML = `
+    <div class="session-dot dot-${day.type}"></div>
+    <div class="session-day" style="color:${hdrColor}">${day.name}</div>
+    <span class="session-name" style="flex:1">${day.type==='bicep'?'💪':day.type==='pushup'?'🤜':'😴'} ${day.label}</span>
+    ${dayDone && day.type!=='rest' ? '<span class="day-complete-badge" style="display:inline-block">✓ DONE</span>' : ''}
+  `;
+  block.appendChild(hdr);
+
+  if(day.type==='rest'){
+    const msg = document.createElement('div');
+    msg.className = 'rest-msg';
+    msg.innerHTML = '<span>😴</span>Recovery day — no training. Let your muscles grow.';
+    block.appendChild(msg);
+  } else {
+    const exWrap = document.createElement('div');
+    exWrap.className = 'session-exercises';
+
+    day.exercises.forEach((ex, ei) => {
+      const checked = isExChecked(currentWeek, di, ei);
+      const row = document.createElement('div');
+      row.className = `ex-check-row${isOrange?' orange':''}${checked?' checked':''}`;
+      row.innerHTML = `
+        <div class="ex-checkbox">${checked?'✓':''}</div>
+        <div class="ex-check-info">
+          <div class="ex-check-name">${ex.name}</div>
+          <div class="ex-check-meta">${ex.meta}</div>
+        </div>
+        ${day.type==='bicep'?`<div class="weight-pill">🏋️ ${wp.weight}</div>`:''}
+        <a class="yt-link" href="${ex.url}" target="_blank">▶ Watch</a>
+      `;
+      row.addEventListener('click', (e) => {
+        if(e.target.classList.contains('yt-link')||e.target.closest('.yt-link')) return;
+        toggleEx2(currentWeek, di, ei);
+        renderSchedule();
+        updateOverall();
+      });
+      exWrap.appendChild(row);
+    });
+
+    const dayMarked = isDayDone(currentWeek, di);
+    const markBtn = document.createElement('button');
+    markBtn.className = `mark-day-btn${dayMarked?(isOrange?' marked orange-btn':' marked'):''}`;
+    markBtn.textContent = dayMarked ? '✓ Day Marked Complete — Click to Undo' : 'Mark Entire Day Complete';
+    markBtn.addEventListener('click', () => {
+      toggleDayDone(currentWeek, di);
+      renderSchedule();
+      updateOverall();
+    });
+    exWrap.appendChild(markBtn);
+    block.appendChild(exWrap);
+  }
+
+  contentEl.appendChild(block);
+  updateOverall();
+}
+
+function updateOverall(){
+  document.getElementById('overall-pct').textContent=overallPct()+'%';
+}
+
+// ─── RENDER PROGRESS ─────────────────────────────────────
+function renderProgress(){
+  const wrap=document.getElementById('progress-display');
+  wrap.innerHTML='';
+  for(let w=1;w<=WEEKS;w++){
+    const pct=weekPct(w);
+    const div=document.createElement('div');
+    div.className='progress-week'+(pct===100?' complete':'');
+    div.innerHTML=`
+      <div class="progress-week-title">WEEK ${w} ${pct===100?'✅':pct>0?'🔄':''}</div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-label">Completion</div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+        <div class="progress-pct">${pct}%</div>
+      </div>
+    `;
+    wrap.appendChild(div);
+  }
+
+  // weight roadmap
+  const roadmap=document.getElementById('weight-roadmap');
+  roadmap.innerHTML='';
+  WEIGHT_PLAN.forEach((stage,i)=>{
+    const isCurrent = currentWeek>=stage.weeks[0] && currentWeek<=stage.weeks[1];
+    const isPast    = currentWeek>stage.weeks[1];
+    const row=document.createElement('div');
+    row.className='roadmap-row';
+    row.innerHTML=`
+      <div class="roadmap-dot${isCurrent?' active':isPast?' done':''}"></div>
+      <div class="roadmap-line${isPast?' done':''}"></div>
+      <div class="roadmap-content${isCurrent?' active':isPast?' done':''}">
+        <div class="roadmap-weeks">${stage.label} ${isCurrent?'← YOU ARE HERE':isPast?'✓ Complete':''}</div>
+        <div class="roadmap-weight">${stage.weight} per arm</div>
+        <div class="roadmap-desc">${stage.desc}</div>
+      </div>
+    `;
+    roadmap.appendChild(row);
+  });
+}
+
+// ─── INIT ─────────────────────────────────────────────────
+renderSchedule();
+
+// ─── WORKOUT MODE ─────────────────────────────────────────
+let timerInterval = null;
+let timerRemaining = 0;
+let timerTotal = 0;
+
+function showPanel(id, el) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  el.classList.add('active');
+  if(id==='progress') renderProgress();
+  if(id==='workout')  renderWorkoutDaySelect();
+}
+
+function renderWorkoutDaySelect() {
+  stopTimer();
+  const sel = document.getElementById('workout-day-select');
+  const con = document.getElementById('workout-content');
+  con.innerHTML = '';
+  sel.innerHTML = `<div class="small-label" style="margin-bottom:12px">Choose today's session to start</div>`;
+  DAYS.forEach((day, di) => {
+    const btn = document.createElement('button');
+    const dotColor = day.type==='bicep'?'var(--accent)':day.type==='pushup'?'var(--accent2)':'var(--rest-color)';
+    btn.className = 'workout-day-btn' + (day.type==='rest'?' rest-day':'');
+    btn.innerHTML = `
+      <div class="wdb-dot" style="background:${dotColor}"></div>
+      <div class="wdb-name">${day.name}</div>
+      <div style="font-size:.72rem;color:var(--muted);flex:1;padding-left:4px">${day.label}</div>
+      ${day.type!=='rest'?`<div class="wdb-label">${day.exercises.length} exercises ▶</div>`:'<div class="wdb-label">😴 Rest</div>'}
+    `;
+    if(day.type !== 'rest') {
+      btn.onclick = () => showRepSetup(di);
+    }
+    sel.appendChild(btn);
+  });
+}
+
+// ── REP SETUP SCREEN ────────────────────────────────────────
+function showRepSetup(dayIndex) {
+  const day      = DAYS[dayIndex];
+  const wp       = getWeightForWeek(currentWeek);
+  const isOrange = day.type === 'pushup';
+  const accent   = isOrange ? 'var(--accent2)' : 'var(--accent)';
+  const sel = document.getElementById('workout-day-select');
+  const con = document.getElementById('workout-content');
+  sel.innerHTML = '';
+
+  // build rep config — default to lower bound of rep range per exercise
+  const repConfig = day.exercises.map(ex => {
+    const s = String(ex.reps);
+    return parseInt(s.split('–')[0]) || parseInt(s) || 10;
+  });
+
+  function render() {
+    con.innerHTML = `
+      <div class="workout-header">
+        <button class="workout-back" onclick="renderWorkoutDaySelect()">◀ Back</button>
+        <div class="workout-title${isOrange?' orange':''}">${day.name}</div>
+        ${day.type==='bicep'?`<div class="workout-weight-chip">🏋️ ${wp.weight} per arm</div>`:''}
+      </div>
+      <div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px">Set your reps for today</div>
+      <div id="rep-setup-list"></div>
+      <button id="start-workout-btn" style="width:100%;padding:16px;border:none;border-radius:12px;background:${accent};color:#000;font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:3px;cursor:pointer;margin-top:8px;transition:opacity .15s;">
+        START WORKOUT ▶
+      </button>
+    `;
+
+    const list = document.getElementById('rep-setup-list');
+    day.exercises.forEach((ex, ei) => {
+      const card = document.createElement('div');
+      card.style.cssText = `background:var(--surface);border:1px solid var(--border);border-left:3px solid ${accent};border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;`;
+      card.innerHTML = `
+        <div style="flex:1;">
+          <div style="font-weight:600;font-size:.88rem;margin-bottom:2px;">${ex.name}</div>
+          <div style="font-size:.7rem;color:var(--muted);">${ex.sets} sets · range ${ex.reps} reps</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+          <button class="rep-adj-btn" data-ei="${ei}" data-d="-1" style="width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);background:transparent;color:var(--text);font-size:1.1rem;cursor:pointer;font-family:'DM Sans',sans-serif;">−</button>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:${accent};min-width:32px;text-align:center;">${repConfig[ei]}</div>
+          <button class="rep-adj-btn" data-ei="${ei}" data-d="1" style="width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);background:transparent;color:var(--text);font-size:1.1rem;cursor:pointer;font-family:'DM Sans',sans-serif;">+</button>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+
+    // +/- buttons
+    list.querySelectorAll('.rep-adj-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const ei = parseInt(btn.dataset.ei);
+        const d  = parseInt(btn.dataset.d);
+        repConfig[ei] = Math.max(1, Math.min(30, repConfig[ei] + d));
+        render();
+      });
+    });
+
+    document.getElementById('start-workout-btn').onclick = () => startWorkout(dayIndex, repConfig);
+  }
+  render();
+}
+
+function startWorkout(dayIndex, repConfig) {
+  stopTimer();
+  const day      = DAYS[dayIndex];
+  const wp       = getWeightForWeek(currentWeek);
+  const isOrange = day.type === 'pushup';
+  const accent   = isOrange ? 'var(--accent2)' : 'var(--accent)';
+
+  const sel = document.getElementById('workout-day-select');
+  const con = document.getElementById('workout-content');
+  sel.innerHTML = '';
+
+  con.innerHTML = `
+    <div class="workout-header">
+      <button class="workout-back" onclick="exitWorkout()">◀ Back</button>
+      <div class="workout-title${isOrange?' orange':''}">${day.name} — ${day.label}</div>
+      ${day.type==='bicep'?`<div class="workout-weight-chip">🏋️ ${wp.weight} per arm</div>`:''}
+    </div>
+    <div id="wk-ex-summary"></div>
+    <div class="workout-complete" id="workout-complete">
+      <div class="wc-icon">🏆</div>
+      <div class="wc-title">Session Complete!</div>
+      <div class="wc-sub">Great work. Rest up, eat your protein, and come back stronger.<br><br>
+        ${day.type==='bicep'?`<strong style="color:var(--accent)">Current weight: ${wp.weight} per arm</strong>`:'Keep building that push-up strength!'}
+      </div>
+      <button class="wc-btn" onclick="exitWorkout()">← Back to Sessions</button>
+    </div>
+  `;
+
+  const setsDone  = day.exercises.map(ex => Array(ex.sets).fill(false));
+  let activeEx    = 0;
+  let activeSet   = 0;
+  let cueInterval = null;
+  let repInterval = null;
+
+  // ── Cue helpers ─────────────────────────────────────────
+  function cueArrow(p) { return p==='UP'?'⬆':p==='DOWN'?'⬇':'⏸'; }
+  function cueClass(p) { return p==='UP'?'up':p==='DOWN'?'down':'hold'; }
+
+  // ── Summary view ─────────────────────────────────────────
+  function renderSummary() {
+    const wrap = document.getElementById('wk-ex-summary');
+    if(!wrap) return;
+    wrap.innerHTML = '';
+    day.exercises.forEach((ex, ei) => {
+      const allDone = setsDone[ei].every(v=>v);
+      const div = document.createElement('div');
+      div.className = 'wk-ex-card' + (allDone?' wk-ex-done':'');
+      div.innerHTML = `
+        <div class="wk-ex-header">
+          <div class="wk-ex-num${isOrange?' orange':''}">${String(ei+1).padStart(2,'0')}</div>
+          <div class="wk-ex-name">${ex.name}</div>
+          <div class="wk-ex-reps-tag">${repConfig[ei]} reps × ${ex.sets} sets</div>
+          <div class="wk-done-badge">✓ Done</div>
+        </div>
+        <div style="display:flex;gap:6px;padding:10px 14px 12px;align-items:center;">
+          ${Array.from({length:ex.sets}).map((_,si)=>{
+            const done=setsDone[ei][si];
+            const isCur=ei===activeEx&&si===activeSet&&!allDone;
+            return `<div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;border:2px solid ${done||isCur?accent:'var(--border)'};background:${done?accent:'transparent'};color:${done?'#000':isCur?accent:'var(--muted)'};">${done?'✓':si+1}</div>`;
+          }).join('')}
+          ${!allDone&&ei===activeEx?`<button onclick="openSetScreen(${ei},${activeSet})" style="margin-left:auto;padding:6px 14px;border:none;border-radius:8px;background:${accent};color:#000;font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:1px;cursor:pointer;">▶ Start Set ${activeSet+1}</button>`:''}
+        </div>
+      `;
+      wrap.appendChild(div);
+    });
+  }
+
+  // ── Set screen with AUTO rep counter ─────────────────────
+  window.openSetScreen = function(ei, si) {
+    const ex     = day.exercises[ei];
+    const target = repConfig[ei];
+    const screen = document.getElementById('set-screen');
+    let   repCount = 0;
+    let   cueStep  = 0;
+    let   repPhase = 0; // tracks position within the pace cycle per rep
+
+    // populate static info
+    document.getElementById('set-screen-title').textContent = day.label.toUpperCase();
+    document.getElementById('set-screen-title').className = 'set-screen-title' + (isOrange?' orange':'');
+    document.getElementById('set-screen-chip').textContent = day.type==='bicep'?`🏋️ ${wp.weight}`:'';
+    document.getElementById('set-ex-name').textContent = ex.name;
+    document.getElementById('set-info-reps').textContent = `${target} reps`;
+    document.getElementById('set-info-set').textContent  = `Set ${si+1} of ${ex.sets}`;
+    document.getElementById('rep-target').textContent    = `0 / ${target}`;
+
+    const counterEl = document.getElementById('rep-counter');
+    counterEl.textContent = target; // countdown from target
+    counterEl.className   = 'rep-counter-num';
+
+    // hide tap button — not needed anymore
+    const tapBtn = document.getElementById('rep-tap-btn');
+    tapBtn.style.display = 'none';
+    document.getElementById('rep-undo-btn').style.display = 'none';
+
+    // dots
+    const dotsEl = document.getElementById('set-dots');
+    dotsEl.innerHTML = '';
+    Array.from({length:ex.sets}).forEach((_,s) => {
+      const dot = document.createElement('div');
+      const done = setsDone[ei][s];
+      const cur  = s === si;
+      dot.className = `set-dot${done?' dot-done':cur?' dot-active':''}${isOrange?' orange-dot':''}`;
+      dotsEl.appendChild(dot);
+    });
+
+    // back button
+    document.getElementById('set-back-btn').onclick = () => {
+      stopRepCycle();
+      screen.classList.add('hidden');
+    };
+
+    screen.classList.remove('hidden');
+
+    // ── AUTO REP CYCLE ──────────────────────────────────────
+    // pace is array of {p: phase, s: seconds}
+    // Expand into flat tick list so multi-second steps show a countdown
+    const pace = ex.pace || [{p:'UP',s:1},{p:'HOLD',s:1},{p:'DOWN',s:1},{p:'HOLD',s:1}];
+
+    function buildTicks(paceArr) {
+      const ticks = [];
+      paceArr.forEach((step, si) => {
+        const isLastStep = si === paceArr.length - 1;
+        for(let t = 0; t < step.s; t++) {
+          ticks.push({
+            phase: step.p,
+            secs: step.s,
+            tickInStep: t + 1,
+            isRepEnd: isLastStep && t === step.s - 1
+          });
+        }
+      });
+      return ticks;
+    }
+
+    function stopRepCycle() {
+      if(repInterval) { clearInterval(repInterval); repInterval = null; }
+    }
+
+    function updateCueTick(tick) {
+      const arrowEl = document.getElementById('cue-arrow');
+      const phaseEl = document.getElementById('cue-phase');
+      if(arrowEl) arrowEl.textContent = cueArrow(tick.phase);
+      if(phaseEl) {
+        // Show countdown within multi-second steps e.g. "DOWN 3"
+        const label = tick.secs > 1
+          ? `${tick.phase} ${tick.secs - tick.tickInStep + 1}`
+          : tick.phase;
+        phaseEl.textContent = label;
+        phaseEl.className = 'cue-phase ' + cueClass(tick.phase);
+      }
+    }
+
+    function updateCounter(remaining) {
+      const el = document.getElementById('rep-counter');
+      if(!el) return;
+      el.textContent = remaining;
+      el.className = 'rep-counter-num ' + (isOrange ? 'orange-bump' : 'bump');
+      setTimeout(() => { if(el) el.className = 'rep-counter-num'; }, 200);
+      document.getElementById('rep-target').textContent = `${target - remaining} / ${target}`;
+    }
+
+    const ticks = buildTicks(pace);
+    let tickIdx = 0;
+    let remaining = target;
+
+    updateCueTick(ticks[0]);
+
+    repInterval = setInterval(() => {
+      tickIdx = (tickIdx + 1) % ticks.length;
+      const tick = ticks[tickIdx];
+      updateCueTick(tick);
+
+      if(tick.isRepEnd) {
+        remaining--;
+        updateCounter(remaining);
+        if(remaining <= 0) {
+          stopRepCycle();
+          const el = document.getElementById('rep-counter');
+          if(el) { el.textContent = '✓'; el.style.color = accent; }
+          setTimeout(() => {
+            screen.classList.add('hidden');
+            finishSet(ei, si);
+          }, 800);
+        }
+      }
+    }, 1000);
+  };
+
+  function finishSet(ei, si) {
+    setsDone[ei][si] = true;
+    const ex     = day.exercises[ei];
+    const nextSi = si + 1 < ex.sets ? si + 1 : -1;
+    const nextEi = nextSi === -1 ? ei + 1 : ei;
+    const nextSet= nextSi === -1 ? 0 : nextSi;
+    const hasNext= day.exercises[nextEi] !== undefined;
+
+    activeEx  = hasNext ? nextEi : ei;
+    activeSet = hasNext ? nextSet : si;
+
+    if(!hasNext && nextSi === -1) {
+      renderSummary();
+      finishWorkout();
+      return;
+    }
+
+    const nextEx    = day.exercises[nextEi];
+    const nextLabel = nextSi === -1
+      ? `Next: ${nextEx.name}`
+      : `Next: Set ${nextSet+1} of ${ex.sets}`;
+
+    renderSummary();
+    showRestScreen(ex.rest, nextLabel, () => {
+      renderSummary();
+      showCountdown(day.exercises[activeEx].name, isOrange, () => {
+        renderSummary();
+        openSetScreen(activeEx, activeSet);
+      });
+    });
+  }
+
+  function finishWorkout() {
+    stopTimer();
+    document.getElementById('workout-complete').classList.add('visible');
+    const s = getState();
+    if(!s[currentWeek]) s[currentWeek]={};
+    if(!s[currentWeek][dayIndex]) s[currentWeek][dayIndex]={};
+    s[currentWeek][dayIndex].dayDone = true;
+    saveState(s); updateOverall();
+  }
+
+  // ── Rest screen ──────────────────────────────────────────
+  function showRestScreen(seconds, nextLabel, onDone) {
+    stopTimer();
+    const screen  = document.getElementById('rest-screen');
+    const countEl = document.getElementById('rest-screen-count');
+    const barEl   = document.getElementById('rest-screen-bar');
+    const nextEl  = document.getElementById('rest-screen-next');
+    const skipBtn = document.getElementById('rest-skip-btn');
+    nextEl.textContent = nextLabel;
+    screen.classList.remove('hidden');
+    barEl.style.transition='none'; barEl.style.width='100%';
+    let remaining = seconds;
+    function fmt(s){ return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
+    countEl.textContent = fmt(remaining);
+    skipBtn.onclick = () => { stopTimer(); screen.classList.add('hidden'); onDone(); };
+    timerInterval = setInterval(() => {
+      remaining--;
+      countEl.textContent = fmt(remaining);
+      barEl.style.transition='width 1s linear';
+      barEl.style.width = (remaining/seconds*100)+'%';
+      if(remaining<=0){ stopTimer(); screen.classList.add('hidden'); onDone(); }
+    }, 1000);
+  }
+
+  // ── Countdown overlay ───────────────────────────────────
+  function showCountdown(exName, orange, cb) {
+    const overlay = document.getElementById('countdown-overlay');
+    const numEl   = document.getElementById('cd-num');
+    const subEl   = document.getElementById('cd-sub');
+    const nameEl  = document.getElementById('cd-ex-name');
+    overlay.classList.remove('hidden');
+    nameEl.textContent = exName;
+    subEl.textContent  = 'Get ready...';
+    if(orange) numEl.classList.add('orange'); else numEl.classList.remove('orange');
+    let count = 5;
+    function tick(){ numEl.style.animation='none'; numEl.offsetHeight; numEl.style.animation=''; numEl.textContent=count; }
+    tick();
+    const iv = setInterval(()=>{
+      count--;
+      if(count>0){ tick(); }
+      else{
+        clearInterval(iv);
+        numEl.innerHTML=`<div class="countdown-go" style="color:${accent}">GO!</div>`;
+        subEl.textContent='Set starting now!';
+        setTimeout(()=>{ overlay.classList.add('hidden'); cb(); }, 650);
+      }
+    },1000);
+  }
+
+  window.exitWorkout = function() {
+    stopTimer();
+    if(repInterval) { clearInterval(repInterval); repInterval = null; }
+    document.getElementById('set-screen').classList.add('hidden');
+    document.getElementById('rest-screen').classList.add('hidden');
+    document.getElementById('countdown-overlay').classList.add('hidden');
+    renderWorkoutDaySelect();
+  };
+
+  // kick off
+  renderSummary();
+  showCountdown(day.exercises[0].name, isOrange, () => {
+    renderSummary();
+    openSetScreen(0, 0);
+  });
+}
+
+function stopTimer() {
+  if(timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+</script>
+<!-- COUNTDOWN OVERLAY -->
+<div class="countdown-overlay hidden" id="countdown-overlay">
+  <div class="countdown-ex-name" id="cd-ex-name"></div>
+  <div class="countdown-num" id="cd-num"></div>
+  <div class="countdown-sub" id="cd-sub"></div>
+</div>
+
+<!-- ACTIVE SET SCREEN -->
+<div class="set-screen hidden" id="set-screen">
+  <div class="set-screen-header">
+    <button class="set-screen-back" id="set-back-btn">✕ Exit</button>
+    <div class="set-screen-title" id="set-screen-title">WORKOUT</div>
+    <div class="set-screen-chip" id="set-screen-chip"></div>
+  </div>
+  <div class="set-screen-body">
+    <div class="set-ex-name" id="set-ex-name"></div>
+    <div class="set-info-row">
+      <div class="set-info-chip" id="set-info-reps"></div>
+      <div class="set-info-chip" id="set-info-set"></div>
+    </div>
+    <div class="set-dots" id="set-dots"></div>
+
+    <!-- movement cue -->
+    <div class="cue-box">
+      <div class="cue-label">Movement</div>
+      <div class="cue-arrow" id="cue-arrow">⬆</div>
+      <div class="cue-phase up" id="cue-phase">UP</div>
+    </div>
+
+    <!-- rep counter -->
+    <div class="rep-counter-wrap">
+      <div class="rep-counter-label">Reps Remaining</div>
+      <div class="rep-counter-num" id="rep-counter">0</div>
+      <div class="rep-counter-target" id="rep-target"></div>
+    </div>
+
+    <div style="font-size:.7rem;color:var(--muted);text-align:center;letter-spacing:1px;text-transform:uppercase;">Auto-counting · follow the movement cue</div>
+
+    <!-- hidden tap/undo (kept for JS refs) -->
+    <button class="rep-tap-btn" id="rep-tap-btn" style="display:none">TAP</button>
+    <div class="rep-actions" style="display:none">
+      <button class="rep-undo-btn" id="rep-undo-btn">↩ Undo</button>
+    </div>
+  </div>
+</div>
+
+<!-- REST SCREEN -->
+<div class="rest-screen hidden" id="rest-screen">
+  <div class="rest-screen-label" id="rest-screen-label">Rest</div>
+  <div class="rest-screen-count" id="rest-screen-count">0:60</div>
+  <div class="rest-screen-next" id="rest-screen-next"></div>
+  <div class="rest-screen-bar-bg"><div class="rest-screen-bar" id="rest-screen-bar" style="width:100%"></div></div>
+  <button class="rest-skip-btn" id="rest-skip-btn">Skip Rest ▶</button>
+</div>
+
+</body>
+</html>
